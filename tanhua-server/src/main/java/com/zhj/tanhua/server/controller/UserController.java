@@ -34,8 +34,14 @@ public class UserController {
     @ApiOperation("用户登录")
     @GetMapping("login")
     public ResponseResult<UserDto> login(@RequestParam("phone") String phone,
-                                         @RequestParam("checkCode") String checkCode) {
-        return ResponseResult.ok(userService.login(phone, checkCode));
+                                         @RequestParam("checkCode") String checkCode){
+        UserDto userDto;
+        try {
+            userDto = userService.login(phone, checkCode);
+        } catch (Exception e) {
+            return ResponseResult.fail(e.getMessage());
+        }
+        return ResponseResult.ok(userDto);
     }
 
     /**
@@ -47,7 +53,14 @@ public class UserController {
     @ApiOperation("发送验证码")
     @GetMapping("sent")
     public ResponseResult<UserDto> sentCheckCode(@RequestParam("phone") String phone) {
-        return ResponseResult.ok(userService.sentCheckCode(phone));
+
+        UserDto userDto;
+        try {
+            userDto = userService.sentCheckCode(phone);
+        } catch (Exception e) {
+            return ResponseResult.fail(e.getMessage());
+        }
+        return ResponseResult.ok(userDto);
     }
 
     /**
@@ -79,7 +92,12 @@ public class UserController {
     @PostMapping("save")
     public ResponseResult<Object> saveUserInfo(@RequestHeader(AUTHORIZATION) String token,
                                                @RequestBody UserInfoDto userInfoDto) {
-        userService.saveUserInfo(token, userInfoDto);
+        try {
+            userService.saveUserInfo(token, userInfoDto);
+        } catch (Exception e) {
+            return ResponseResult.fail(e.getMessage());
+        }
+
         return ResponseResult.ok();
     }
 
@@ -94,7 +112,12 @@ public class UserController {
     @PostMapping("saveLogo")
     public ResponseResult<Object> saveAvatar(@RequestHeader(AUTHORIZATION) String token,
                                              @RequestParam("avatar") MultipartFile file) {
-        userService.saveAvatar(token, file);
+        try {
+            userService.saveAvatar(token, file);
+        } catch (Exception e) {
+            return ResponseResult.fail(e.getMessage());
+        }
+
         return ResponseResult.ok();
     }
 
@@ -102,13 +125,19 @@ public class UserController {
      * 获取用户详细信息
      *
      * @param token 用户token
-     * @param userId 用户ID
      * @return ResponseResult<UserInfoDto>
      */
     @ApiOperation("获取用户详细信息")
     @GetMapping("userInfo")
-    public ResponseResult<UserInfoDto> getUserInfo(@RequestHeader(AUTHORIZATION) String token,
-                                                   @RequestParam("userId") Long userId) {
-        return ResponseResult.ok(userService.getUserInfo(token, userId));
+    public ResponseResult<UserInfoDto> getUserInfo(@RequestHeader(AUTHORIZATION) String token) {
+
+        UserInfoDto userInfo;
+        try {
+            userInfo = userService.getUserInfo(token);
+        } catch (Exception e) {
+            return ResponseResult.fail(e.getMessage());
+        }
+
+        return ResponseResult.ok(userInfo);
     }
 }

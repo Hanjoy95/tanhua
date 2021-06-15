@@ -10,6 +10,7 @@ import com.zhj.tanhua.user.api.UserApi;
 import com.zhj.tanhua.user.config.RabbitmqConfig;
 import com.zhj.tanhua.user.dao.UserDao;
 import com.zhj.tanhua.user.dao.UserInfoDao;
+import com.zhj.tanhua.user.enums.SexEnum;
 import com.zhj.tanhua.user.po.UserInfo;
 import com.zhj.tanhua.user.dto.UserDto;
 import com.zhj.tanhua.user.po.User;
@@ -26,6 +27,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -227,7 +229,15 @@ public class UserService implements UserApi {
 
         UserInfo userInfo = new UserInfo();
         BeanUtils.copyProperties(userInfoDto, userInfo);
-        userInfoDao.insert(userInfo);
+        userInfo.setSex(userInfoDto.getSex().getValue());
+
+        try {
+            userInfoDao.insert(userInfo);
+        } catch (DuplicateKeyException e) {
+            userInfoDao.update(userInfo, Wrappers.<UserInfo>lambdaQuery()
+                    .eq(UserInfo::getUserId, userInfoDto.getUserId()));
+        }
+
     }
 
     /**
@@ -270,9 +280,10 @@ public class UserService implements UserApi {
     public UserInfoDto getUserInfo(Long userId) {
 
         UserInfoDto userInfoDto = new UserInfoDto();
-        BeanUtils.copyProperties(userInfoDao.selectOne(Wrappers.<UserInfo>lambdaQuery()
-                .eq(UserInfo::getUserId, userId)), userInfoDto);
+        UserInfo userInfo = userInfoDao.selectOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, userId));
+        BeanUtils.copyProperties(userInfo, userInfoDto);
         userInfoDto.setPhone(userDao.selectById(userId).getPhone());
+        userInfoDto.setSex(SexEnum.getType(userInfo.getSex()));
 
         return userInfoDto;
     }
@@ -309,6 +320,7 @@ public class UserService implements UserApi {
             UserInfoDto userInfoDto = new UserInfoDto();
             BeanUtils.copyProperties(userInfo, userInfoDto);
             userInfoDto.setPhone(userMap.get(userInfo.getUserId()));
+            userInfoDto.setSex(SexEnum.getType(userInfo.getSex()));
             userInfoDtos.add(userInfoDto);
         }
 

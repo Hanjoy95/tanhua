@@ -1,5 +1,6 @@
 package com.zhj.tanhua.user.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.zhj.tanhua.user.enums.SexEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -15,9 +16,9 @@ import java.io.Serializable;
 @ApiModel("用户详细信息")
 public class UserInfoDto implements Serializable {
 
-    @ApiModelProperty(value = "用户ID")
+    @ApiModelProperty(value = "用户ID", hidden = true)
     private Long userId;
-    @ApiModelProperty(value = "手机号")
+    @ApiModelProperty(value = "手机号", hidden = true)
     private String phone;
     @ApiModelProperty(value = "昵称")
     private String nickName;
@@ -25,7 +26,8 @@ public class UserInfoDto implements Serializable {
     private String tags;
     @ApiModelProperty(value = "性别")
     private SexEnum sex;
-    @ApiModelProperty(value = "头像")
+    @ApiModelProperty(value = "头像", hidden = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String avatar;
     @ApiModelProperty(value = "年龄")
     private Integer age;

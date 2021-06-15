@@ -18,4 +18,13 @@ public enum SexEnum {
     public Integer getValue() {
         return this.value;
     }
+
+    public static SexEnum getType(int num) {
+        for (SexEnum sexEnum : SexEnum.values()) {
+            if (sexEnum.getValue() == num) {
+                return sexEnum;
+            }
+        }
+        return unknow;
+    }
 }

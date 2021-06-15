@@ -1,5 +1,6 @@
 package com.zhj.tanhua.user.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -21,13 +22,18 @@ import java.io.Serializable;
 public class UserDto implements Serializable {
 
     @ApiModelProperty(value = "用户ID")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Long id;
     @ApiModelProperty(value = "手机号")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String phone;
     @ApiModelProperty(value = "是否新用户")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Boolean isNew;
     @ApiModelProperty(value = "验证码")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String checkCode;
     @ApiModelProperty(value = "token")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String token;
 }
