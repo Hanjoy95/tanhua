@@ -28,7 +28,7 @@ public class RecommendService {
     @Autowired
     private UserService userService;
 
-    @DubboReference(version = "1.0.0", url = "dubbo://127.0.0.1:20890")
+    @DubboReference(version = "1.0", url = "dubbo://127.0.0.1:19200")
     RecommendUserApi recommendUserApi;
 
     private static final String COMMA = ",";
@@ -97,7 +97,8 @@ public class RecommendService {
 
         // 查询推荐用户的详细信息
         List<UserInfoDto> userInfoDtos = userService.getUserInfos(new ArrayList<>(recommendUserMap.keySet()),
-                recommendUserVo.getSex().toString(), recommendUserVo.getAge(), recommendUserVo.getCity());
+                null == recommendUserVo.getSex() ? null : recommendUserVo.getSex().getValue(),
+                recommendUserVo.getAge(), recommendUserVo.getCity());
 
         // 构建推荐用户列表
         List<TodayBestVo> todayBests = new ArrayList<>();

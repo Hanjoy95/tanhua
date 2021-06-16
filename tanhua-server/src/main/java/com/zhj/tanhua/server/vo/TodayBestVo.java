@@ -20,7 +20,7 @@ public class TodayBestVo {
     @ApiModelProperty(value = "头像")
     private String avatar;
     @ApiModelProperty(value = "昵称")
-    private String nickname;
+    private String nickName;
     @ApiModelProperty(value = "性别")
     private SexEnum sex;
     @ApiModelProperty(value = "年龄")

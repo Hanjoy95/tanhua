@@ -70,5 +70,5 @@ public interface UserApi {
      * @param city 城市
      * @return List<UserInfoDto>
      */
-    List<UserInfoDto> getUserInfos(List<Long> userIds, String sex, Integer age, String city);
+    List<UserInfoDto> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city);
 }

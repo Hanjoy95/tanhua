@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  * @author huanjie.zhuang
  * @date 2021/6/12
  */
-@DubboService(version = "1.0.0")
+@DubboService(version = "1.0")
 @Slf4j
 public class UserService implements UserApi {
 
@@ -298,17 +298,17 @@ public class UserService implements UserApi {
      * @return List<UserInfoDto>
      */
     @Override
-    public List<UserInfoDto> getUserInfos(List<Long> userIds, String sex, Integer age, String city) {
+    public List<UserInfoDto> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city) {
 
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("user_id", userIds);
-        if (StringUtils.isNotEmpty(sex)) {
+        if (null != sex) {
             queryWrapper.eq("sex", sex);
         }
         if (null != age) {
             queryWrapper.lt("age", age);
         }
-        if (StringUtils.isNotEmpty(sex)) {
+        if (StringUtils.isNotEmpty(city)) {
             queryWrapper.eq("city", city);
         }
 

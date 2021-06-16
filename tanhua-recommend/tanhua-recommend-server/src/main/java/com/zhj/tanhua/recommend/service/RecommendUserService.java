@@ -22,7 +22,7 @@ import java.util.List;
  * @author huanjie.zhuang
  * @date 2021/6/12
  */
-@DubboService(version = "1.0.0")
+@DubboService(version = "1.0")
 public class RecommendUserService implements RecommendUserApi {
 
     @Autowired

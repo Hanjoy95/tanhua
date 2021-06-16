@@ -1,1 +1,2 @@
-db.tanhua.insert({name:"mongo"})
+db.tanhua.insert({userId:2, toUserId:1, fate:95, date:"2021-06-16"})
+db.tanhua.insert({userId:3, toUserId:1, fate:90, date:"2021-06-16"})

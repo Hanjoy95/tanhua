@@ -1,10 +1,12 @@
 package com.zhj.tanhua.recommend.po;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.io.Serializable;
 
 /**
  * @author huanjie.zhuang
@@ -12,10 +14,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Data
 @Document(collection = "recommend_user")
-public class RecommendUser {
+public class RecommendUser implements Serializable {
 
     @Id
-    private Long id;
+    private ObjectId id;
     @Indexed
     private Long userId;
     private Long toUserId;

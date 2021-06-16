@@ -17,7 +17,7 @@ import java.util.List;
 @Service
 public class UserService {
 
-    @DubboReference(version = "1.0.0", url = "dubbo://127.0.0.1:20880")
+    @DubboReference(version = "1.0", url = "dubbo://127.0.0.1:19100")
     UserApi userApi;
 
     /**
@@ -107,7 +107,7 @@ public class UserService {
      * @param city 城市
      * @return List<UserInfoDto>
      */
-    List<UserInfoDto> getUserInfos(List<Long> userIds, String sex, Integer age, String city) {
+    List<UserInfoDto> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city) {
         return userApi.getUserInfos(userIds, sex, age, city);
     }
 }

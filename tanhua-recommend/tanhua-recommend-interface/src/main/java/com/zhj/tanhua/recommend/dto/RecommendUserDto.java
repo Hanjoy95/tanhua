@@ -4,13 +4,15 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @author huanjie.zhuang
  * @date 2021/6/14
  */
 @Data
 @ApiModel("推荐用户")
-public class RecommendUserDto {
+public class RecommendUserDto implements Serializable {
 
     @ApiModelProperty(value = "推荐的用户id")
     private Long userId;
