@@ -55,7 +55,7 @@ public class RecommendService {
         }
 
         // 查询缘分值最高的推荐用户的详细信息
-        UserInfoDto userInfo = userService.getUserInfo(token);
+        UserInfoDto userInfo = userService.getUserInfo(recommendUser.getUserId());
         if (null == userInfo) {
             throw new BaseRunTimeException("未找到缘分值最高的推荐用户的详细信息");
         }

@@ -51,7 +51,7 @@ public class UserController {
      * @return ResponseResult<UserDto>
      */
     @ApiOperation("发送验证码")
-    @GetMapping("sent")
+    @GetMapping("sentCheckCode")
     public ResponseResult<UserDto> sentCheckCode(@RequestParam("phone") String phone) {
 
         UserDto userDto;
@@ -70,7 +70,7 @@ public class UserController {
      * @return ResponseResult<UserDto>
      */
     @ApiOperation("根据token查询用户")
-    @GetMapping("{token}")
+    @GetMapping("token/{token}")
     public ResponseResult<UserDto> getUserByToken(@PathVariable("token") String token) {
 
         UserDto user = userService.getUserByToken(token);
@@ -89,7 +89,7 @@ public class UserController {
      * @return ResponseResult<Object>
      */
     @ApiOperation("保存用户信息")
-    @PostMapping("save")
+    @PostMapping("saveInfo")
     public ResponseResult<Object> saveUserInfo(@RequestHeader(AUTHORIZATION) String token,
                                                @RequestBody UserInfoDto userInfoDto) {
         try {
@@ -109,7 +109,7 @@ public class UserController {
      * @return ResponseResult<Object>
      */
     @ApiOperation("保存用户头像")
-    @PostMapping("saveLogo")
+    @PostMapping("saveAvatar")
     public ResponseResult<Object> saveAvatar(@RequestHeader(AUTHORIZATION) String token,
                                              @RequestParam("avatar") MultipartFile file) {
         try {
@@ -128,16 +128,14 @@ public class UserController {
      * @return ResponseResult<UserInfoDto>
      */
     @ApiOperation("获取用户详细信息")
-    @GetMapping("userInfo")
+    @GetMapping("info")
     public ResponseResult<UserInfoDto> getUserInfo(@RequestHeader(AUTHORIZATION) String token) {
 
-        UserInfoDto userInfo;
-        try {
-            userInfo = userService.getUserInfo(token);
-        } catch (Exception e) {
-            return ResponseResult.fail(e.getMessage());
+        UserDto user = userService.getUserByToken(token);
+        if (null == user) {
+            return ResponseResult.fail("当前登录用户token已失效，请重新登录");
         }
 
-        return ResponseResult.ok(userInfo);
+        return ResponseResult.ok(userService.getUserInfo(user.getId()));
     }
 }

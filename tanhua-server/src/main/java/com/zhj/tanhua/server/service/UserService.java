@@ -85,17 +85,11 @@ public class UserService {
     /**
      * 获取用户详细信息
      *
-     * @param token 用户token
+     * @param userId 用户ID
      * @return UserInfoDto
      */
-    public UserInfoDto getUserInfo(String token) {
-
-        UserDto user = getUserByToken(token);
-        if (null == user) {
-            throw new BaseRunTimeException("当前登录用户token已失效，请重新登录");
-        }
-
-        return userApi.getUserInfo(user.getId());
+    public UserInfoDto getUserInfo(Long userId) {
+        return userApi.getUserInfo(userId);
     }
 
     /**
