@@ -3,22 +3,20 @@ package com.zhj.tanhua.circle.po;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
 
 /**
- * 相册表，用于存储自己发布的动态，每个用户存储一张表
- * 表名: circle_album_{userId}
+ * 用户好友表
  *
  * @author huanjie.zhuang
  * @date 2021/6/17
  */
 @Data
-@Document(collection = "circle_album")
-public class Album implements Serializable {
-
-    public static final String TABLE_NAME_PREFIX = "circle_album_";
+@Document(collection = "circle_friend")
+public class Friend implements Serializable {
 
     /**
      * 主键ID
@@ -26,11 +24,16 @@ public class Album implements Serializable {
     @Id
     private ObjectId id;
     /**
-     * 发布ID
+     * 用户ID
      */
-    private ObjectId publishId;
+    @Indexed
+    private Long userId;
     /**
-     * 发布时间
+     * 好友ID
+     */
+    private Long friendId;
+    /**
+     * 创建时间
      */
     private Long created;
 }
