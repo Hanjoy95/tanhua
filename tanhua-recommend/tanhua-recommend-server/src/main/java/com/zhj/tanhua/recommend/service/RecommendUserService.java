@@ -1,5 +1,6 @@
 package com.zhj.tanhua.recommend.service;
 
+import com.zhj.tanhua.common.exception.NotFoundException;
 import com.zhj.tanhua.common.vo.PageResult;
 import com.zhj.tanhua.recommend.api.RecommendUserApi;
 import com.zhj.tanhua.recommend.po.RecommendUser;
@@ -43,8 +44,9 @@ public class RecommendUserService implements RecommendUserApi {
         RecommendUserDto recommendUserDto = new RecommendUserDto();
         RecommendUser recommendUser = mongoTemplate.findOne(query, RecommendUser.class);
         if (null == recommendUser) {
-            return null;
+            throw new NotFoundException("the best recommendUser not found to userId: " + userId);
         }
+
         BeanUtils.copyProperties(recommendUser, recommendUserDto);
 
         return recommendUserDto;
@@ -68,7 +70,7 @@ public class RecommendUserService implements RecommendUserApi {
         long total = mongoTemplate.count(query, RecommendUser.class);
         List<RecommendUser> recommendUsers = mongoTemplate.find(query.with(pageable), RecommendUser.class);
         if (CollectionUtils.isEmpty(recommendUsers)) {
-            return null;
+            throw new NotFoundException("the recommendUser list not found to userId: " + userId);
         }
 
         List<RecommendUserDto> recommendUserDtos = new ArrayList<>();

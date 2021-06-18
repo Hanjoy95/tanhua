@@ -1,6 +1,5 @@
 package com.zhj.tanhua.user.api;
 
-import com.zhj.tanhua.common.exception.BaseRunTimeException;
 import com.zhj.tanhua.user.dto.UserInfoDto;
 import com.zhj.tanhua.user.dto.UserDto;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,7 +19,7 @@ public interface UserApi {
      * @param checkCode  验证码
      * @return UserDto
      */
-    UserDto login(String phone, String checkCode) throws BaseRunTimeException;
+    UserDto login(String phone, String checkCode);
 
     /**
      * 发送验证码
@@ -28,7 +27,7 @@ public interface UserApi {
      * @param phone 用户手机号
      * @return UserDto
      */
-    UserDto sentCheckCode(String phone) throws BaseRunTimeException;
+    UserDto sentCheckCode(String phone);
 
     /**
      * 根据token查询用户数据
@@ -51,7 +50,7 @@ public interface UserApi {
      * @param userId 用户ID
      * @param file 用户头像图片文件
      */
-    void saveAvatar(Long userId, MultipartFile file) throws BaseRunTimeException;
+    void saveAvatar(Long userId, MultipartFile file);
 
     /**
      * 获取用户详细信息

@@ -6,7 +6,6 @@ import com.zhj.tanhua.circle.po.Album;
 import com.zhj.tanhua.circle.po.Feed;
 import com.zhj.tanhua.circle.po.Friend;
 import com.zhj.tanhua.circle.po.Publish;
-import com.zhj.tanhua.common.exception.BaseRunTimeException;
 import com.zhj.tanhua.common.vo.PageResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboService;
@@ -46,12 +45,7 @@ public class circleService implements circleApi {
 
         // 写入发布表中
         Publish publish = new Publish();
-        try {
-            BeanUtils.copyProperties(publishDto, publish);
-        } catch (Exception e) {
-            log.error("用户ID: {}, 发布内容转换存储对象出错", publishDto.getUserId(), e);
-            throw new BaseRunTimeException("用户ID: " + publishDto.getUserId() + ", 发布内容转换存储对象出错", e);
-        }
+        BeanUtils.copyProperties(publishDto, publish);
         publish.setCreated(System.currentTimeMillis());
         mongoTemplate.save(publishDto);
 
@@ -115,7 +109,7 @@ public class circleService implements circleApi {
             publishDtoList.add(publishDto);
         }
 
-        return PageResult.<PublishDto>builder().pageNum((long) pageNum).pageSize((long) pageSize)
-                .total(total).hasNext((long) pageNum * pageSize < total).data(publishDtoList).build();
+        return PageResult.<PublishDto>builder().total(total).pageNum((long) pageNum).pageSize((long) pageSize)
+                .hasNext((long) pageNum * pageSize < total).data(publishDtoList).build();
     }
 }

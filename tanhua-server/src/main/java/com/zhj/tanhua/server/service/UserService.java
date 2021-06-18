@@ -1,6 +1,6 @@
 package com.zhj.tanhua.server.service;
 
-import com.zhj.tanhua.common.exception.BaseRunTimeException;
+import com.zhj.tanhua.common.exception.BaseException;
 import com.zhj.tanhua.user.api.UserApi;
 import com.zhj.tanhua.user.dto.UserInfoDto;
 import com.zhj.tanhua.user.dto.UserDto;
@@ -60,9 +60,6 @@ public class UserService {
     public void saveUserInfo(String token, UserInfoDto userInfoDto) {
 
         UserDto user = getUserByToken(token);
-        if (null == user) {
-            throw new BaseRunTimeException("当前登录用户token已失效，请重新登录");
-        }
         userInfoDto.setUserId(user.getId());
         userApi.saveUserInfo(userInfoDto);
     }
@@ -76,9 +73,6 @@ public class UserService {
     public void saveAvatar(String token, MultipartFile file) {
 
         UserDto user = getUserByToken(token);
-        if (null == user) {
-            throw new BaseRunTimeException("当前登录用户token已失效，请重新登录");
-        }
         userApi.saveAvatar(user.getId(), file);
     }
 

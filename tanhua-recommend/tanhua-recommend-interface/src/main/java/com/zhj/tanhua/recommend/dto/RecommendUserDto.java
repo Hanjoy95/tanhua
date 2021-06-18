@@ -14,12 +14,12 @@ import java.io.Serializable;
 @ApiModel("推荐用户")
 public class RecommendUserDto implements Serializable {
 
-    @ApiModelProperty(value = "推荐的用户id")
+    @ApiModelProperty(value = "推荐用户ID")
     private Long userId;
-    @ApiModelProperty(value = "用户id")
+    @ApiModelProperty(value = "用户ID")
     private Long toUserId;
     @ApiModelProperty(value = "缘分值")
     private Double fate;
     @ApiModelProperty(value = "日期")
-    private String date;
+    private Long created;
 }

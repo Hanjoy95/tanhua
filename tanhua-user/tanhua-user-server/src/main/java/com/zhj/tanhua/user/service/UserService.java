@@ -2,10 +2,9 @@ package com.zhj.tanhua.user.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zhj.tanhua.common.exception.BaseRunTimeException;
+import com.zhj.tanhua.common.exception.*;
 import com.zhj.tanhua.user.api.UserApi;
 import com.zhj.tanhua.user.config.RabbitmqConfig;
 import com.zhj.tanhua.user.dao.UserDao;
@@ -60,6 +59,7 @@ public class UserService implements UserApi {
     @Value("${jwt.secret}")
     private String secret;
 
+    private static final String DEFAULT_PASSWORD = "123456";
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -71,6 +71,7 @@ public class UserService implements UserApi {
      * @return UserDto
      */
     @Override
+    @SneakyThrows
     public UserDto login(String phone, String checkCode) {
 
         // 校验验证码是否正确
@@ -78,27 +79,27 @@ public class UserService implements UserApi {
         String value = redisTemplate.opsForValue().get(redisKey);
 
         if (StringUtils.isEmpty(value)) {
-            throw new BaseRunTimeException("验证码失效");
+            throw new CheckCodeExpiredException("checkCode expired, please sent again");
         }
 
         if (!StringUtils.equals(value, checkCode)) {
-            throw new BaseRunTimeException("验证码输入错误");
+            throw new ParameterInvalidException("checkCode input error");
         }
-
-        // 默认是已注册
-        boolean isNew = false;
 
         // 校验该手机号是否已经注册，如果没有注册，需要注册一个账号，如果已经注册，直接登录
         User user = userDao.selectOne(Wrappers.<User>lambdaQuery().eq(User::getPhone, phone));
+
+        // 默认是已注册
+        boolean isNew = false;
 
         if (null == user) {
             // 该手机号未注册
             user = new User();
             user.setPhone(phone);
             // 默认密码
-            user.setPassword(DigestUtils.md5Hex("123456"));
+            user.setPassword(DigestUtils.md5Hex(DEFAULT_PASSWORD));
             userDao.insert(user);
-            log.info("用户[手机号:{}], 新注册", phone);
+            log.info("phone: {}, new registration", phone);
             isNew = true;
         }
 
@@ -114,16 +115,7 @@ public class UserService implements UserApi {
 
         // 将token存储到redis中
         String redisTokenKey = "TOKEN_" + token;
-        String redisTokenValue;
-        try {
-            redisTokenValue = MAPPER.writeValueAsString(user);
-        } catch (JsonProcessingException e) {
-            log.error("用户[手机号:{}], 存储token出错", phone, e);
-            throw new BaseRunTimeException("存储token出错");
-        }
-        if (null == redisTokenValue) {
-            throw new BaseRunTimeException("存储token出错");
-        }
+        String redisTokenValue = MAPPER.writeValueAsString(user);
         redisTemplate.opsForValue().set(redisTokenKey, redisTokenValue, Duration.ofHours(1));
 
         // 发送消息
@@ -134,8 +126,8 @@ public class UserService implements UserApi {
             msg.put("date", new Date());
             rabbitTemplate.convertAndSend(RabbitmqConfig.EXCHANGE, RabbitmqConfig.ROUTING_KEY, msg);
         } catch (Exception e) {
-            log.error("用户[手机号:{}], 发送消息出错", phone, e);
-            throw new BaseRunTimeException("发送消息出错");
+            log.error("phone: {}, sent message error", phone, e);
+            throw new SentMessageException("phone: {}, sent message error", e);
         }
 
         return UserDto.builder().id(user.getId()).phone(phone).isNew(isNew).token(token).build();
@@ -153,13 +145,13 @@ public class UserService implements UserApi {
         String redisKey = "CHECK_CODE_" + phone;
         String value = redisTemplate.opsForValue().get(redisKey);
         if (StringUtils.isNotEmpty(value)) {
-            throw new BaseRunTimeException("上一次发送的验证码还未失效");
+            throw new ResourceDuplicateException("the last sent checkCode has not expired");
         }
 
         String checkCode = sendSms(phone);
         if (null == checkCode) {
-            log.error("用户[手机号:{}], 发送短信验证码出错", phone);
-            throw new BaseRunTimeException("发送短信验证码失败");
+            log.error("phone: {}, sent check code error", phone);
+            throw new BaseException("sent checkCode error");
         }
 
         // 将验证码存储到redis,2分钟后失效
@@ -211,8 +203,9 @@ public class UserService implements UserApi {
         String redisTokenKey = "TOKEN_" + token;
         String cacheData = redisTemplate.opsForValue().get(redisTokenKey);
         if (StringUtils.isEmpty(cacheData)) {
-            return null;
+            throw new TokenExpiredException("token expired, please login again");
         }
+
         // 刷新时间
         redisTemplate.expire(redisTokenKey, 1, TimeUnit.HOURS);
 
@@ -237,7 +230,6 @@ public class UserService implements UserApi {
             userInfoDao.update(userInfo, Wrappers.<UserInfo>lambdaQuery()
                     .eq(UserInfo::getUserId, userInfoDto.getUserId()));
         }
-
     }
 
     /**
@@ -252,13 +244,13 @@ public class UserService implements UserApi {
 
 //        // 校验图片是否为人像
 //        if (!faceEngineService.checkIsPortrait(file.getBytes())) {
-//           throw new BaseRunTimeException("图片非人像，请重新上传!");
+//           throw new BaseException("图片非人像，请重新上传!");
 //        }
 //
 //        // 图片上传到阿里云OSS
 //        PicUploadResult uploadResult = picUploadService.upload(file);
 //        if (null == uploadResult.getName()) {
-//            throw new BaseRunTimeException("上传头像失败");
+//            throw new BaseException("上传头像失败");
 //        }
 //
 //        userInfoDao.update(null, Wrappers.<UserInfo>lambdaUpdate()

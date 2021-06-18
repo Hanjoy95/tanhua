@@ -13,43 +13,31 @@ import lombok.Data;
 @Data
 public class ResponseResult<T> {
 
-    @ApiModelProperty(value = "状态, 成功为ture, 失败为false")
-    private Boolean status;
-    @ApiModelProperty(value = "状态码")
-    private String code;
+    @ApiModelProperty(value = "状态")
+    private ResponseStatus status;
+    @ApiModelProperty(value = "反馈信息")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private String message;
     @ApiModelProperty(value = "数据")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private T data;
-    @ApiModelProperty(value = "报错信息")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private String message;
-
-    public static final String SUCCESS = "success";
-    public static final String INTERNAL_ERROR = "internal_error";
-    public static final String NOT_FOUND = "not_found";
-    public static final String ALREADY_EXIST = "already_exist";
-    public static final String INVALID_PARAMETER = "invalid_parameter";
 
     public ResponseResult() {
-        this.status = true;
-        this.code = SUCCESS;
+        this.status = ResponseStatus.SUCCESS;
     }
 
     public ResponseResult(T data) {
-        this.status = true;
-        this.code = SUCCESS;
+        this.status = ResponseStatus.SUCCESS;
         this.data = data;
     }
 
     public ResponseResult(String message) {
-        this.status = false;
-        this.code = INTERNAL_ERROR;
+        this.status = ResponseStatus.SERVER_ERROR;
         this.message = message;
     }
 
-    public ResponseResult(String code, String message) {
-        this.status = true;
-        this.code = code;
+    public ResponseResult(ResponseStatus status, String message) {
+        this.status = status;
         this.message = message;
     }
 
@@ -65,7 +53,7 @@ public class ResponseResult<T> {
         return new ResponseResult<>(message);
     }
 
-    public static<T> ResponseResult<T> fail(String code, String message) {
-        return new ResponseResult<>(code, message);
+    public static<T> ResponseResult<T> fail(ResponseStatus status, String message) {
+        return new ResponseResult<>(status, message);
     }
 }

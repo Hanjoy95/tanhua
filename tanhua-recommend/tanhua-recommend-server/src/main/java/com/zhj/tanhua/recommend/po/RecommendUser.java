@@ -16,12 +16,27 @@ import java.io.Serializable;
 @Document(collection = "recommend_user")
 public class RecommendUser implements Serializable {
 
+    /**
+     * 主键ID
+     */
     @Id
     private ObjectId id;
+    /**
+     * 用户ID
+     */
     @Indexed
     private Long userId;
+    /**
+     * 推荐用户ID
+     */
     private Long toUserId;
+    /**
+     * 缘分值
+     */
     @Indexed
     private Double fate;
-    private String date;
+    /**
+     * 创建时间
+     */
+    private Long created;
 }

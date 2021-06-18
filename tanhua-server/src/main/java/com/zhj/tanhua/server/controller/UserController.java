@@ -1,5 +1,6 @@
 package com.zhj.tanhua.server.controller;
 
+import com.zhj.tanhua.common.exception.BaseException;
 import com.zhj.tanhua.common.vo.ResponseResult;
 import com.zhj.tanhua.server.service.UserService;
 import com.zhj.tanhua.user.dto.UserInfoDto;
@@ -35,13 +36,11 @@ public class UserController {
     @GetMapping("login")
     public ResponseResult<UserDto> login(@RequestParam("phone") String phone,
                                          @RequestParam("checkCode") String checkCode){
-        UserDto userDto;
         try {
-            userDto = userService.login(phone, checkCode);
-        } catch (Exception e) {
-            return ResponseResult.fail(e.getMessage());
+            return ResponseResult.ok(userService.login(phone, checkCode));
+        } catch (BaseException e) {
+            return ResponseResult.fail(e.getStatus(), e.getMessage());
         }
-        return ResponseResult.ok(userDto);
     }
 
     /**
@@ -54,13 +53,11 @@ public class UserController {
     @GetMapping("sentCheckCode")
     public ResponseResult<UserDto> sentCheckCode(@RequestParam("phone") String phone) {
 
-        UserDto userDto;
         try {
-            userDto = userService.sentCheckCode(phone);
-        } catch (Exception e) {
-            return ResponseResult.fail(e.getMessage());
+            return ResponseResult.ok(userService.sentCheckCode(phone));
+        } catch (BaseException e) {
+            return ResponseResult.fail(e.getStatus(), e.getMessage());
         }
-        return ResponseResult.ok(userDto);
     }
 
     /**
@@ -73,12 +70,11 @@ public class UserController {
     @GetMapping("token/{token}")
     public ResponseResult<UserDto> getUserByToken(@PathVariable("token") String token) {
 
-        UserDto user = userService.getUserByToken(token);
-        if (null == user) {
-            return ResponseResult.fail("当前登录用户token已失效，请重新登录");
+        try {
+            return ResponseResult.ok(userService.getUserByToken(token));
+        } catch (BaseException e) {
+            return ResponseResult.fail(e.getStatus(), e.getMessage());
         }
-
-        return ResponseResult.ok(user);
     }
 
     /**
@@ -94,8 +90,8 @@ public class UserController {
                                                @RequestBody UserInfoDto userInfoDto) {
         try {
             userService.saveUserInfo(token, userInfoDto);
-        } catch (Exception e) {
-            return ResponseResult.fail(e.getMessage());
+        } catch (BaseException e) {
+            return ResponseResult.fail(e.getStatus(), e.getMessage());
         }
 
         return ResponseResult.ok();
@@ -114,8 +110,8 @@ public class UserController {
                                              @RequestParam("avatar") MultipartFile file) {
         try {
             userService.saveAvatar(token, file);
-        } catch (Exception e) {
-            return ResponseResult.fail(e.getMessage());
+        } catch (BaseException e) {
+            return ResponseResult.fail(e.getStatus(), e.getMessage());
         }
 
         return ResponseResult.ok();
@@ -131,11 +127,10 @@ public class UserController {
     @GetMapping("info")
     public ResponseResult<UserInfoDto> getUserInfo(@RequestHeader(AUTHORIZATION) String token) {
 
-        UserDto user = userService.getUserByToken(token);
-        if (null == user) {
-            return ResponseResult.fail("当前登录用户token已失效，请重新登录");
+        try {
+            return ResponseResult.ok(userService.getUserInfo(userService.getUserByToken(token).getId()));
+        } catch (BaseException e) {
+            return ResponseResult.fail(e.getStatus(), e.getMessage());
         }
-
-        return ResponseResult.ok(userService.getUserInfo(user.getId()));
     }
 }
