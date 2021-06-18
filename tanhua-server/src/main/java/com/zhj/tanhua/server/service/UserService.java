@@ -1,9 +1,10 @@
 package com.zhj.tanhua.server.service;
 
-import com.zhj.tanhua.common.exception.BaseRunTimeException;
+import com.zhj.tanhua.user.pojo.dto.UserInfoDto;
+import com.zhj.tanhua.user.pojo.po.User;
+import com.zhj.tanhua.user.pojo.to.UserInfoTo;
 import com.zhj.tanhua.user.api.UserApi;
-import com.zhj.tanhua.user.dto.UserInfoDto;
-import com.zhj.tanhua.user.dto.UserDto;
+import com.zhj.tanhua.user.pojo.to.UserTo;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,9 +26,9 @@ public class UserService {
      *
      * @param phone 用户手机号
      * @param checkCode  验证码
-     * @return UserDto
+     * @return UserTo
      */
-    public UserDto login(String phone, String checkCode) {
+    public UserTo login(String phone, String checkCode) {
         return userApi.login(phone, checkCode);
     }
 
@@ -35,9 +36,9 @@ public class UserService {
      * 发送验证码
      *
      * @param phone 用户手机号
-     * @return UserDto
+     * @return String
      */
-    public UserDto sentCheckCode(String phone) {
+    public String sentCheckCode(String phone) {
         return userApi.sentCheckCode(phone);
     }
 
@@ -45,9 +46,9 @@ public class UserService {
      * 根据token查询用户数据
      *
      * @param token 用户token
-     * @return UserDto
+     * @return User
      */
-    public UserDto getUserByToken(String token) {
+    public User getUserByToken(String token) {
         return userApi.getUserByToken(token);
     }
 
@@ -59,10 +60,7 @@ public class UserService {
      */
     public void saveUserInfo(String token, UserInfoDto userInfoDto) {
 
-        UserDto user = getUserByToken(token);
-        if (null == user) {
-            throw new BaseRunTimeException("当前登录用户token已失效，请重新登录");
-        }
+        User user = getUserByToken(token);
         userInfoDto.setUserId(user.getId());
         userApi.saveUserInfo(userInfoDto);
     }
@@ -75,10 +73,7 @@ public class UserService {
      */
     public void saveAvatar(String token, MultipartFile file) {
 
-        UserDto user = getUserByToken(token);
-        if (null == user) {
-            throw new BaseRunTimeException("当前登录用户token已失效，请重新登录");
-        }
+        User user = getUserByToken(token);
         userApi.saveAvatar(user.getId(), file);
     }
 
@@ -86,9 +81,9 @@ public class UserService {
      * 获取用户详细信息
      *
      * @param userId 用户ID
-     * @return UserInfoDto
+     * @return UserInfoTo
      */
-    public UserInfoDto getUserInfo(Long userId) {
+    public UserInfoTo getUserInfo(Long userId) {
         return userApi.getUserInfo(userId);
     }
 
@@ -99,9 +94,9 @@ public class UserService {
      * @param sex 性别
      * @param age 年龄
      * @param city 城市
-     * @return List<UserInfoDto>
+     * @return List<UserInfoTo>
      */
-    List<UserInfoDto> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city) {
+    List<UserInfoTo> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city) {
         return userApi.getUserInfos(userIds, sex, age, city);
     }
 }

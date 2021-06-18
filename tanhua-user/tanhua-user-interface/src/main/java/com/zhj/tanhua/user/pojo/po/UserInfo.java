@@ -1,15 +1,18 @@
-package com.zhj.tanhua.user.po;
+package com.zhj.tanhua.user.pojo.po;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * @author huanjie.zhuang
  * @date 2021/6/2
  */
 @Data
-public class UserInfo {
+public class UserInfo implements Serializable {
+
     @TableId(type = IdType.AUTO)
     private Long id;
     private Long userId;
@@ -19,10 +22,11 @@ public class UserInfo {
     private Integer sex;
     private Integer age;
     private String edu;
+    private String school;
     private String city;
     private String birthday;
     private String coverPic;
     private String industry;
     private String income;
-    private String marriage;
+    private String single;
 }

@@ -1,10 +1,11 @@
 package com.zhj.tanhua.server.controller;
 
-import com.zhj.tanhua.common.vo.PageResult;
-import com.zhj.tanhua.common.vo.ResponseResult;
+import com.zhj.tanhua.common.exception.BaseException;
+import com.zhj.tanhua.common.result.PageResult;
+import com.zhj.tanhua.common.result.ResponseResult;
 import com.zhj.tanhua.server.service.RecommendService;
-import com.zhj.tanhua.server.vo.RecommendUserVo;
-import com.zhj.tanhua.server.vo.TodayBestVo;
+import com.zhj.tanhua.server.vo.recommend.RecommendUserVo;
+import com.zhj.tanhua.server.vo.recommend.TodayBestVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,12 @@ public class RecommendController {
     @ApiOperation("获取今日佳人")
     @GetMapping("todayBest")
     public ResponseResult<TodayBestVo> getTodayBest(@RequestHeader(AUTHORIZATION) String token) {
-        return ResponseResult.ok(recommendService.getTodayBest(token));
+
+        try {
+            return ResponseResult.ok(recommendService.getTodayBest(token));
+        }catch (BaseException e) {
+            return ResponseResult.fail(e.getStatus(), e.getMessage());
+        }
     }
 
     /**
@@ -47,6 +53,10 @@ public class RecommendController {
     @PostMapping("users")
     public ResponseResult<PageResult<TodayBestVo>> getRecommendUsers(@RequestHeader(AUTHORIZATION) String token,
                                                                      @RequestBody RecommendUserVo recommendUserVo) {
-        return ResponseResult.ok(recommendService.getRecommendUsers(token, recommendUserVo));
+        try {
+            return ResponseResult.ok(recommendService.getRecommendUsers(token, recommendUserVo));
+        } catch (BaseException e) {
+            return ResponseResult.fail(e.getStatus(), e.getMessage());
+        }
     }
 }

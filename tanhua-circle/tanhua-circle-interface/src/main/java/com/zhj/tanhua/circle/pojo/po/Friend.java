@@ -1,4 +1,4 @@
-package com.zhj.tanhua.recommend.po;
+package com.zhj.tanhua.circle.pojo.po;
 
 import lombok.Data;
 import org.bson.types.ObjectId;
@@ -9,19 +9,31 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.io.Serializable;
 
 /**
+ * 用户好友表
+ *
  * @author huanjie.zhuang
- * @date 2021/6/10
+ * @date 2021/6/17
  */
 @Data
-@Document(collection = "recommend_user")
-public class RecommendUser implements Serializable {
+@Document(collection = "circle_friend")
+public class Friend implements Serializable {
 
+    /**
+     * 主键ID
+     */
     @Id
     private ObjectId id;
+    /**
+     * 用户ID
+     */
     @Indexed
     private Long userId;
-    private Long toUserId;
-    @Indexed
-    private Double fate;
-    private String date;
+    /**
+     * 好友ID
+     */
+    private Long friendId;
+    /**
+     * 创建时间
+     */
+    private Long created;
 }

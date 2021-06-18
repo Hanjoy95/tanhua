@@ -1,19 +1,17 @@
 package com.zhj.tanhua.server.service;
 
-import com.zhj.tanhua.common.exception.BaseRunTimeException;
-import com.zhj.tanhua.common.vo.PageResult;
+import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.recommend.api.RecommendUserApi;
-import com.zhj.tanhua.recommend.dto.RecommendUserDto;
-import com.zhj.tanhua.server.vo.RecommendUserVo;
-import com.zhj.tanhua.server.vo.TodayBestVo;
-import com.zhj.tanhua.user.dto.UserInfoDto;
-import com.zhj.tanhua.user.dto.UserDto;
+import com.zhj.tanhua.recommend.po.RecommendUser;
+import com.zhj.tanhua.server.vo.recommend.RecommendUserVo;
+import com.zhj.tanhua.server.vo.recommend.TodayBestVo;
+import com.zhj.tanhua.user.pojo.po.User;
+import com.zhj.tanhua.user.pojo.to.UserInfoTo;
 import lombok.SneakyThrows;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,22 +41,13 @@ public class RecommendService {
     public TodayBestVo getTodayBest(String token) {
 
         // 根据token查询当前登录的用户信息
-        UserDto user = userService.getUserByToken(token);
-        if (null == user) {
-            throw new BaseRunTimeException("当前用户token已失效，请重新登录");
-        }
+        User user = userService.getUserByToken(token);
 
         // 查询缘分值最高的推荐用户
-        RecommendUserDto recommendUser = recommendUserApi.getBestRecommendUser(user.getId());
-        if (null == recommendUser) {
-            throw new BaseRunTimeException("未找到缘分值最高的推荐用户");
-        }
+        RecommendUser recommendUser = recommendUserApi.getBestRecommendUser(user.getId());
 
         // 查询缘分值最高的推荐用户的详细信息
-        UserInfoDto userInfo = userService.getUserInfo(recommendUser.getUserId());
-        if (null == userInfo) {
-            throw new BaseRunTimeException("未找到缘分值最高的推荐用户的详细信息");
-        }
+        UserInfoTo userInfo = userService.getUserInfo(recommendUser.getUserId());
 
         // 构建今日佳人
         TodayBestVo todayBest = new TodayBestVo();
@@ -81,32 +70,26 @@ public class RecommendService {
     public PageResult<TodayBestVo> getRecommendUsers(String token, RecommendUserVo recommendUserVo) {
 
         // 根据token查询当前登录的用户信息
-        UserDto user = userService.getUserByToken(token);
-        if (null == user) {
-            throw new BaseRunTimeException("当前用户token已失效，请重新登录");
-        }
+        User user = userService.getUserByToken(token);
 
         // 查询推荐用户列表
-        PageResult<RecommendUserDto> recommendUsers = recommendUserApi.getRecommendUsers(user.getId(),
+        PageResult<RecommendUser> recommendUsers = recommendUserApi.getRecommendUsers(user.getId(),
                 recommendUserVo.getPageNum(), recommendUserVo.getPageSize());
-        if (CollectionUtils.isEmpty(recommendUsers.getData())) {
-            throw new BaseRunTimeException("未找到推荐用户");
-        }
         Map<Long, Double> recommendUserMap = recommendUsers.getData()
-                .stream().collect(Collectors.toMap(RecommendUserDto::getUserId, RecommendUserDto::getFate));
+                .stream().collect(Collectors.toMap(RecommendUser::getUserId, RecommendUser::getFate));
 
         // 查询推荐用户的详细信息
-        List<UserInfoDto> userInfoDtos = userService.getUserInfos(new ArrayList<>(recommendUserMap.keySet()),
+        List<UserInfoTo> userInfoTos = userService.getUserInfos(new ArrayList<>(recommendUserMap.keySet()),
                 null == recommendUserVo.getSex() ? null : recommendUserVo.getSex().getValue(),
                 recommendUserVo.getAge(), recommendUserVo.getCity());
 
         // 构建推荐用户列表
         List<TodayBestVo> todayBests = new ArrayList<>();
-        for (UserInfoDto userInfoDto : userInfoDtos) {
+        for (UserInfoTo userInfoTo : userInfoTos) {
             TodayBestVo todayBest = new TodayBestVo();
-            BeanUtils.copyProperties(userInfoDto, todayBest);
-            todayBest.setTags(Arrays.asList(userInfoDto.getTags().split(COMMA)));
-            todayBest.setFate(recommendUserMap.get(userInfoDto.getUserId()).intValue());
+            BeanUtils.copyProperties(userInfoTo, todayBest);
+            todayBest.setTags(Arrays.asList(userInfoTo.getTags().split(COMMA)));
+            todayBest.setFate(recommendUserMap.get(userInfoTo.getUserId()).intValue());
             todayBests.add(todayBest);
         }
 

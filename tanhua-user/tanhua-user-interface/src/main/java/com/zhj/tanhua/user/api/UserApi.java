@@ -1,8 +1,9 @@
 package com.zhj.tanhua.user.api;
 
-import com.zhj.tanhua.common.exception.BaseRunTimeException;
-import com.zhj.tanhua.user.dto.UserInfoDto;
-import com.zhj.tanhua.user.dto.UserDto;
+import com.zhj.tanhua.user.pojo.dto.UserInfoDto;
+import com.zhj.tanhua.user.pojo.po.User;
+import com.zhj.tanhua.user.pojo.to.UserInfoTo;
+import com.zhj.tanhua.user.pojo.to.UserTo;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -18,25 +19,25 @@ public interface UserApi {
      *
      * @param phone 用户手机号
      * @param checkCode  验证码
-     * @return UserDto
+     * @return UserTo
      */
-    UserDto login(String phone, String checkCode) throws BaseRunTimeException;
+    UserTo login(String phone, String checkCode);
 
     /**
      * 发送验证码
      *
      * @param phone 用户手机号
-     * @return UserDto
+     * @return String
      */
-    UserDto sentCheckCode(String phone) throws BaseRunTimeException;
+    String sentCheckCode(String phone);
 
     /**
      * 根据token查询用户数据
      *
      * @param token 用户token
-     * @return UserDto
+     * @return User
      */
-    UserDto getUserByToken(String token);
+    User getUserByToken(String token);
 
     /**
      * 完善个人信息
@@ -51,15 +52,15 @@ public interface UserApi {
      * @param userId 用户ID
      * @param file 用户头像图片文件
      */
-    void saveAvatar(Long userId, MultipartFile file) throws BaseRunTimeException;
+    void saveAvatar(Long userId, MultipartFile file);
 
     /**
      * 获取用户详细信息
      *
      * @param userId 用户ID
-     * @return UserInfoDto
+     * @return UserInfoTo
      */
-    UserInfoDto getUserInfo(Long userId);
+    UserInfoTo getUserInfo(Long userId);
 
     /**
      * 获取用户详细信息列表
@@ -68,7 +69,7 @@ public interface UserApi {
      * @param sex 性别
      * @param age 年龄
      * @param city 城市
-     * @return List<UserInfoDto>
+     * @return List<UserInfoTo>
      */
-    List<UserInfoDto> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city);
+    List<UserInfoTo> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city);
 }

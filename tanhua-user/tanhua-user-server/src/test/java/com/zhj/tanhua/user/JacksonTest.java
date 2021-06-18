@@ -2,7 +2,6 @@ package com.zhj.tanhua.user;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zhj.tanhua.user.dto.UserDto;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 

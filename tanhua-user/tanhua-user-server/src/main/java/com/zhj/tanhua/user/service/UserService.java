@@ -2,19 +2,19 @@ package com.zhj.tanhua.user.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zhj.tanhua.common.exception.BaseRunTimeException;
+import com.zhj.tanhua.common.exception.*;
 import com.zhj.tanhua.user.api.UserApi;
 import com.zhj.tanhua.user.config.RabbitmqConfig;
 import com.zhj.tanhua.user.dao.UserDao;
 import com.zhj.tanhua.user.dao.UserInfoDao;
 import com.zhj.tanhua.user.enums.SexEnum;
-import com.zhj.tanhua.user.po.UserInfo;
-import com.zhj.tanhua.user.dto.UserDto;
-import com.zhj.tanhua.user.po.User;
-import com.zhj.tanhua.user.dto.UserInfoDto;
+import com.zhj.tanhua.user.pojo.dto.UserInfoDto;
+import com.zhj.tanhua.user.pojo.po.UserInfo;
+import com.zhj.tanhua.user.pojo.po.User;
+import com.zhj.tanhua.user.pojo.to.UserInfoTo;
+import com.zhj.tanhua.user.pojo.to.UserTo;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.SneakyThrows;
@@ -60,6 +60,7 @@ public class UserService implements UserApi {
     @Value("${jwt.secret}")
     private String secret;
 
+    private static final String DEFAULT_PASSWORD = "123456";
     private static final ObjectMapper MAPPER = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
@@ -68,37 +69,38 @@ public class UserService implements UserApi {
      *
      * @param phone 用户手机号
      * @param checkCode  验证码
-     * @return UserDto
+     * @return UserTo
      */
     @Override
-    public UserDto login(String phone, String checkCode) {
+    @SneakyThrows
+    public UserTo login(String phone, String checkCode) {
 
         // 校验验证码是否正确
         String redisKey = "CHECK_CODE_" + phone;
         String value = redisTemplate.opsForValue().get(redisKey);
 
         if (StringUtils.isEmpty(value)) {
-            throw new BaseRunTimeException("验证码失效");
+            throw new CheckCodeExpiredException("checkCode expired, please sent again");
         }
 
         if (!StringUtils.equals(value, checkCode)) {
-            throw new BaseRunTimeException("验证码输入错误");
+            throw new ParameterInvalidException("checkCode input error");
         }
-
-        // 默认是已注册
-        boolean isNew = false;
 
         // 校验该手机号是否已经注册，如果没有注册，需要注册一个账号，如果已经注册，直接登录
         User user = userDao.selectOne(Wrappers.<User>lambdaQuery().eq(User::getPhone, phone));
+
+        // 默认是已注册
+        boolean isNew = false;
 
         if (null == user) {
             // 该手机号未注册
             user = new User();
             user.setPhone(phone);
             // 默认密码
-            user.setPassword(DigestUtils.md5Hex("123456"));
+            user.setPassword(DigestUtils.md5Hex(DEFAULT_PASSWORD));
             userDao.insert(user);
-            log.info("用户[手机号:{}], 新注册", phone);
+            log.info("phone: {}, new registration", phone);
             isNew = true;
         }
 
@@ -114,16 +116,7 @@ public class UserService implements UserApi {
 
         // 将token存储到redis中
         String redisTokenKey = "TOKEN_" + token;
-        String redisTokenValue;
-        try {
-            redisTokenValue = MAPPER.writeValueAsString(user);
-        } catch (JsonProcessingException e) {
-            log.error("用户[手机号:{}], 存储token出错", phone, e);
-            throw new BaseRunTimeException("存储token出错");
-        }
-        if (null == redisTokenValue) {
-            throw new BaseRunTimeException("存储token出错");
-        }
+        String redisTokenValue = MAPPER.writeValueAsString(user);
         redisTemplate.opsForValue().set(redisTokenKey, redisTokenValue, Duration.ofHours(1));
 
         // 发送消息
@@ -131,14 +124,18 @@ public class UserService implements UserApi {
             Map<String, Object> msg = new HashMap<>(3);
             msg.put("id", user.getId());
             msg.put("phone", phone);
-            msg.put("date", new Date());
+            msg.put("created", new Date());
             rabbitTemplate.convertAndSend(RabbitmqConfig.EXCHANGE, RabbitmqConfig.ROUTING_KEY, msg);
         } catch (Exception e) {
-            log.error("用户[手机号:{}], 发送消息出错", phone, e);
-            throw new BaseRunTimeException("发送消息出错");
+            log.error("phone: {}, sent message error", phone, e);
+            throw new SentMessageException("phone: {}, sent message error", e);
         }
 
-        return UserDto.builder().id(user.getId()).phone(phone).isNew(isNew).token(token).build();
+        Map<String, Object> result = new HashMap<>();
+        result.put("isNew", isNew);
+        result.put("token", token);
+
+        return UserTo.builder().isNew(isNew).userId(user.getId()).token(token).build();
     }
 
     /**
@@ -148,24 +145,24 @@ public class UserService implements UserApi {
      * @return UserDto
      */
     @Override
-    public UserDto sentCheckCode(String phone) {
+    public String sentCheckCode(String phone) {
 
         String redisKey = "CHECK_CODE_" + phone;
         String value = redisTemplate.opsForValue().get(redisKey);
         if (StringUtils.isNotEmpty(value)) {
-            throw new BaseRunTimeException("上一次发送的验证码还未失效");
+            throw new ResourceDuplicateException("the last sent checkCode has not expired");
         }
 
         String checkCode = sendSms(phone);
         if (null == checkCode) {
-            log.error("用户[手机号:{}], 发送短信验证码出错", phone);
-            throw new BaseRunTimeException("发送短信验证码失败");
+            log.error("phone: {}, sent check code error", phone);
+            throw new BaseException("sent checkCode error");
         }
 
         // 将验证码存储到redis,2分钟后失效
         redisTemplate.opsForValue().set(redisKey, checkCode, Duration.ofMinutes(2));
 
-        return UserDto.builder().phone(phone).checkCode(checkCode).build();
+        return checkCode;
     }
 
     private String sendSms(String phone) {
@@ -202,21 +199,22 @@ public class UserService implements UserApi {
      * 根据token查询用户数据
      *
      * @param token 用户token
-     * @return UserDto
+     * @return User
      */
     @Override
     @SneakyThrows
-    public UserDto getUserByToken(String token) {
+    public User getUserByToken(String token) {
 
         String redisTokenKey = "TOKEN_" + token;
         String cacheData = redisTemplate.opsForValue().get(redisTokenKey);
         if (StringUtils.isEmpty(cacheData)) {
-            return null;
+            throw new TokenExpiredException("token expired, please login again");
         }
+
         // 刷新时间
         redisTemplate.expire(redisTokenKey, 1, TimeUnit.HOURS);
 
-        return MAPPER.readValue(cacheData, UserDto.class);
+        return MAPPER.readValue(cacheData, User.class);
     }
 
     /**
@@ -237,7 +235,6 @@ public class UserService implements UserApi {
             userInfoDao.update(userInfo, Wrappers.<UserInfo>lambdaQuery()
                     .eq(UserInfo::getUserId, userInfoDto.getUserId()));
         }
-
     }
 
     /**
@@ -252,13 +249,13 @@ public class UserService implements UserApi {
 
 //        // 校验图片是否为人像
 //        if (!faceEngineService.checkIsPortrait(file.getBytes())) {
-//           throw new BaseRunTimeException("图片非人像，请重新上传!");
+//           throw new BaseException("图片非人像，请重新上传!");
 //        }
 //
 //        // 图片上传到阿里云OSS
 //        PicUploadResult uploadResult = picUploadService.upload(file);
 //        if (null == uploadResult.getName()) {
-//            throw new BaseRunTimeException("上传头像失败");
+//            throw new BaseException("上传头像失败");
 //        }
 //
 //        userInfoDao.update(null, Wrappers.<UserInfo>lambdaUpdate()
@@ -274,18 +271,18 @@ public class UserService implements UserApi {
      * 获取用户详细信息
      *
      * @param userId 用户ID
-     * @return UserInfoDto
+     * @return UserInfoTo
      */
     @Override
-    public UserInfoDto getUserInfo(Long userId) {
+    public UserInfoTo getUserInfo(Long userId) {
 
-        UserInfoDto userInfoDto = new UserInfoDto();
         UserInfo userInfo = userInfoDao.selectOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, userId));
-        BeanUtils.copyProperties(userInfo, userInfoDto);
-        userInfoDto.setPhone(userDao.selectById(userId).getPhone());
-        userInfoDto.setSex(SexEnum.getType(userInfo.getSex()));
+        UserInfoTo userInfoTo = new UserInfoTo();
+        BeanUtils.copyProperties(userInfo, userInfoTo);
+        userInfoTo.setPhone(userDao.selectById(userId).getPhone());
+        userInfoTo.setGender(SexEnum.getType(userInfo.getSex()));
 
-        return userInfoDto;
+        return userInfoTo;
     }
 
     /**
@@ -295,10 +292,10 @@ public class UserService implements UserApi {
      * @param sex 性别
      * @param age 年龄
      * @param city 城市
-     * @return List<UserInfoDto>
+     * @return List<UserInfoTo>
      */
     @Override
-    public List<UserInfoDto> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city) {
+    public List<UserInfoTo> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city) {
 
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("user_id", userIds);
@@ -315,15 +312,15 @@ public class UserService implements UserApi {
         List<UserInfo> userInfos = userInfoDao.selectList(queryWrapper);
         Map<Long, String> userMap = userDao.selectBatchIds(userIds)
                 .stream().collect(Collectors.toMap(User::getId, User::getPhone));
-        List<UserInfoDto> userInfoDtos = new ArrayList<>();
+        List<UserInfoTo> userInfoToList = new ArrayList<>();
         for (UserInfo userInfo : userInfos) {
-            UserInfoDto userInfoDto = new UserInfoDto();
-            BeanUtils.copyProperties(userInfo, userInfoDto);
-            userInfoDto.setPhone(userMap.get(userInfo.getUserId()));
-            userInfoDto.setSex(SexEnum.getType(userInfo.getSex()));
-            userInfoDtos.add(userInfoDto);
+            UserInfoTo userInfoTo = new UserInfoTo();
+            BeanUtils.copyProperties(userInfo, userInfoTo);
+            userInfoTo.setPhone(userMap.get(userInfo.getUserId()));
+            userInfoTo.setGender(SexEnum.getType(userInfo.getSex()));
+            userInfoToList.add(userInfoTo);
         }
 
-        return userInfoDtos;
+        return userInfoToList;
     }
 }
