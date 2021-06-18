@@ -1,4 +1,4 @@
-package com.zhj.tanhua.common.vo;
+package com.zhj.tanhua.common.result;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 

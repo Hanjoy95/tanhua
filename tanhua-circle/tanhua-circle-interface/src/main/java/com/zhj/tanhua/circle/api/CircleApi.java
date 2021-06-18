@@ -1,13 +1,14 @@
 package com.zhj.tanhua.circle.api;
 
-import com.zhj.tanhua.circle.dto.PublishDto;
-import com.zhj.tanhua.common.vo.PageResult;
+import com.zhj.tanhua.circle.pojo.dto.PublishDto;
+import com.zhj.tanhua.circle.pojo.po.Publish;
+import com.zhj.tanhua.common.result.PageResult;
 
 /**
  * @author huanjie.zhuang
  * @date 2021/6/17
  */
-public interface circleApi {
+public interface CircleApi {
 
     /**
      * 保存用户发布动态
@@ -24,5 +25,5 @@ public interface circleApi {
      * @param pageSize 页大小
      * @return PageResult<PublishDto>
      */
-    PageResult<PublishDto> queryPublishList(Long userId, Integer pageNum, Integer pageSize);
+    PageResult<Publish> queryPublishList(Long userId, Integer pageNum, Integer pageSize);
 }

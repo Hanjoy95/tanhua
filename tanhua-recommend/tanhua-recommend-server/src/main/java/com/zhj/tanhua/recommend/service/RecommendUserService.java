@@ -1,12 +1,10 @@
 package com.zhj.tanhua.recommend.service;
 
 import com.zhj.tanhua.common.exception.NotFoundException;
-import com.zhj.tanhua.common.vo.PageResult;
+import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.recommend.api.RecommendUserApi;
 import com.zhj.tanhua.recommend.po.RecommendUser;
-import com.zhj.tanhua.recommend.dto.RecommendUserDto;
 import org.apache.dubbo.config.annotation.DubboService;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +14,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,23 +30,20 @@ public class RecommendUserService implements RecommendUserApi {
      * 获取最佳推荐用户
      *
      * @param userId 用户ID
-     * @return RecommendUserVoDto
+     * @return RecommendUser
      */
     @Override
-    public RecommendUserDto getBestRecommendUser(Long userId) {
+    public RecommendUser getBestRecommendUser(Long userId) {
 
         Criteria criteria = Criteria.where("toUserId").is(userId);
         Query query = Query.query(criteria).with(Sort.by(Sort.Order.desc("fate"))).limit(1);
 
-        RecommendUserDto recommendUserDto = new RecommendUserDto();
         RecommendUser recommendUser = mongoTemplate.findOne(query, RecommendUser.class);
         if (null == recommendUser) {
             throw new NotFoundException("the best recommendUser not found to userId: " + userId);
         }
 
-        BeanUtils.copyProperties(recommendUser, recommendUserDto);
-
-        return recommendUserDto;
+        return recommendUser;
     }
 
     /**
@@ -58,10 +52,10 @@ public class RecommendUserService implements RecommendUserApi {
      * @param userId 用户ID
      * @param pageNum 当前页
      * @param pageSize 页大小
-     * @return PageResult<RecommendUserVoDto>
+     * @return PageResult<RecommendUser>
      */
     @Override
-    public PageResult<RecommendUserDto> getRecommendUsers(Long userId, Integer pageNum, Integer pageSize) {
+    public PageResult<RecommendUser> getRecommendUsers(Long userId, Integer pageNum, Integer pageSize) {
 
         Criteria criteria = Criteria.where("toUserId").is(userId);
         Pageable pageable = PageRequest.of(pageNum - 1, pageSize, Sort.by(Sort.Order.desc("fate")));
@@ -73,19 +67,12 @@ public class RecommendUserService implements RecommendUserApi {
             throw new NotFoundException("the recommendUser list not found to userId: " + userId);
         }
 
-        List<RecommendUserDto> recommendUserDtos = new ArrayList<>();
-        for (RecommendUser recommendUser : recommendUsers) {
-            RecommendUserDto recommendUserDto = new RecommendUserDto();
-            BeanUtils.copyProperties(recommendUser, recommendUserDto);
-            recommendUserDtos.add(recommendUserDto);
-        }
-
-        return PageResult.<RecommendUserDto>builder()
+        return PageResult.<RecommendUser>builder()
                 .total(total)
                 .pageNum((long) pageNum)
                 .pageSize((long) pageSize)
                 .hasNext((long) pageNum * pageSize < total)
-                .data(recommendUserDtos)
+                .data(recommendUsers)
                 .build();
     }
 }

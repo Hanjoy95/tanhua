@@ -1,7 +1,7 @@
 package com.zhj.tanhua.recommend.api;
 
-import com.zhj.tanhua.common.vo.PageResult;
-import com.zhj.tanhua.recommend.dto.RecommendUserDto;
+import com.zhj.tanhua.common.result.PageResult;
+import com.zhj.tanhua.recommend.po.RecommendUser;
 
 /**
  * @author huanjie.zhuang
@@ -13,9 +13,9 @@ public interface RecommendUserApi {
      * 获取最佳推荐用户
      *
      * @param userId 用户ID
-     * @return RecommendUserDto
+     * @return RecommendUser
      */
-    RecommendUserDto getBestRecommendUser(Long userId);
+    RecommendUser getBestRecommendUser(Long userId);
 
     /**
      * 获取推荐用户列表
@@ -23,7 +23,7 @@ public interface RecommendUserApi {
      * @param userId 用户ID
      * @param pageNum 当前页
      * @param pageSize 页大小
-     * @return PageResult<RecommendUserDto>
+     * @return PageResult<RecommendUser>
      */
-    PageResult<RecommendUserDto> getRecommendUsers(Long userId, Integer pageNum, Integer pageSize);
+    PageResult<RecommendUser> getRecommendUsers(Long userId, Integer pageNum, Integer pageSize);
 }

@@ -1,11 +1,11 @@
-package com.zhj.tanhua.circle.dto;
+package com.zhj.tanhua.circle.pojo.dto;
+
+import java.io.Serializable;
+import java.util.List;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-
-import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author huanjie.zhuang
@@ -19,7 +19,7 @@ public class PublishDto implements Serializable {
     private Long userId;
     @ApiModelProperty(value = "发布内容")
     private String text;
-    @ApiModelProperty(value = "媒体数据，图片或小视频（url）")
+    @ApiModelProperty(value = "媒体数据，图片或小视频（url）", hidden = true)
     private List<String> medias;
     @ApiModelProperty(value = "谁可以看，1-公开，2-私密，3-部分可见，4-不给谁看")
     private Integer seeType;
@@ -33,6 +33,4 @@ public class PublishDto implements Serializable {
     private String latitude;
     @ApiModelProperty(value = "位置")
     private String location;
-    @ApiModelProperty(value = "发布时间", hidden = true)
-    private Long created;
 }

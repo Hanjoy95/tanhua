@@ -1,12 +1,12 @@
 package com.zhj.tanhua.circle.service;
 
-import com.zhj.tanhua.circle.api.circleApi;
-import com.zhj.tanhua.circle.dto.PublishDto;
-import com.zhj.tanhua.circle.po.Album;
-import com.zhj.tanhua.circle.po.Feed;
-import com.zhj.tanhua.circle.po.Friend;
-import com.zhj.tanhua.circle.po.Publish;
-import com.zhj.tanhua.common.vo.PageResult;
+import com.zhj.tanhua.circle.api.CircleApi;
+import com.zhj.tanhua.circle.pojo.dto.PublishDto;
+import com.zhj.tanhua.circle.pojo.po.Album;
+import com.zhj.tanhua.circle.pojo.po.Feed;
+import com.zhj.tanhua.circle.pojo.po.Friend;
+import com.zhj.tanhua.circle.pojo.po.Publish;
+import com.zhj.tanhua.common.result.PageResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.bson.types.ObjectId;
@@ -29,7 +29,7 @@ import java.util.List;
  */
 @Slf4j
 @DubboService(version = "1.0")
-public class circleService implements circleApi {
+public class CircleService implements CircleApi {
 
     @Autowired
     MongoTemplate mongoTemplate;
@@ -73,10 +73,10 @@ public class circleService implements circleApi {
      * @param userId 用户ID
      * @param pageNum 当前页
      * @param pageSize 页大小
-     * @return PageResult<PublishDto>
+     * @return PageResult<Publish>
      */
     @Override
-    public PageResult<PublishDto> queryPublishList(Long userId, Integer pageNum, Integer pageSize) {
+    public PageResult<Publish> queryPublishList(Long userId, Integer pageNum, Integer pageSize) {
 
         String tableName;
         if (null == userId) {
@@ -101,15 +101,7 @@ public class circleService implements circleApi {
         Query queryPublish = Query.query(Criteria.where("id").in(publishIds)).with(Sort.by(Sort.Order.desc("created")));
         List<Publish> publishList = mongoTemplate.find(queryPublish, Publish.class);
 
-        // 转换动态信息
-        List<PublishDto> publishDtoList = new ArrayList<>();
-        for (Publish publish : publishList) {
-            PublishDto publishDto = new PublishDto();
-            BeanUtils.copyProperties(publish, publishDto);
-            publishDtoList.add(publishDto);
-        }
-
-        return PageResult.<PublishDto>builder().total(total).pageNum((long) pageNum).pageSize((long) pageSize)
-                .hasNext((long) pageNum * pageSize < total).data(publishDtoList).build();
+        return PageResult.<Publish>builder().total(total).pageNum((long) pageNum).pageSize((long) pageSize)
+                .hasNext((long) pageNum * pageSize < total).data(publishList).build();
     }
 }

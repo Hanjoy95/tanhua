@@ -10,10 +10,11 @@ import com.zhj.tanhua.user.config.RabbitmqConfig;
 import com.zhj.tanhua.user.dao.UserDao;
 import com.zhj.tanhua.user.dao.UserInfoDao;
 import com.zhj.tanhua.user.enums.SexEnum;
-import com.zhj.tanhua.user.po.UserInfo;
-import com.zhj.tanhua.user.dto.UserDto;
-import com.zhj.tanhua.user.po.User;
-import com.zhj.tanhua.user.dto.UserInfoDto;
+import com.zhj.tanhua.user.pojo.dto.UserInfoDto;
+import com.zhj.tanhua.user.pojo.po.UserInfo;
+import com.zhj.tanhua.user.pojo.po.User;
+import com.zhj.tanhua.user.pojo.to.UserInfoTo;
+import com.zhj.tanhua.user.pojo.to.UserTo;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.SneakyThrows;
@@ -68,11 +69,11 @@ public class UserService implements UserApi {
      *
      * @param phone 用户手机号
      * @param checkCode  验证码
-     * @return UserDto
+     * @return UserTo
      */
     @Override
     @SneakyThrows
-    public UserDto login(String phone, String checkCode) {
+    public UserTo login(String phone, String checkCode) {
 
         // 校验验证码是否正确
         String redisKey = "CHECK_CODE_" + phone;
@@ -123,14 +124,18 @@ public class UserService implements UserApi {
             Map<String, Object> msg = new HashMap<>(3);
             msg.put("id", user.getId());
             msg.put("phone", phone);
-            msg.put("date", new Date());
+            msg.put("created", new Date());
             rabbitTemplate.convertAndSend(RabbitmqConfig.EXCHANGE, RabbitmqConfig.ROUTING_KEY, msg);
         } catch (Exception e) {
             log.error("phone: {}, sent message error", phone, e);
             throw new SentMessageException("phone: {}, sent message error", e);
         }
 
-        return UserDto.builder().id(user.getId()).phone(phone).isNew(isNew).token(token).build();
+        Map<String, Object> result = new HashMap<>();
+        result.put("isNew", isNew);
+        result.put("token", token);
+
+        return UserTo.builder().isNew(isNew).userId(user.getId()).token(token).build();
     }
 
     /**
@@ -140,7 +145,7 @@ public class UserService implements UserApi {
      * @return UserDto
      */
     @Override
-    public UserDto sentCheckCode(String phone) {
+    public String sentCheckCode(String phone) {
 
         String redisKey = "CHECK_CODE_" + phone;
         String value = redisTemplate.opsForValue().get(redisKey);
@@ -157,7 +162,7 @@ public class UserService implements UserApi {
         // 将验证码存储到redis,2分钟后失效
         redisTemplate.opsForValue().set(redisKey, checkCode, Duration.ofMinutes(2));
 
-        return UserDto.builder().phone(phone).checkCode(checkCode).build();
+        return checkCode;
     }
 
     private String sendSms(String phone) {
@@ -194,11 +199,11 @@ public class UserService implements UserApi {
      * 根据token查询用户数据
      *
      * @param token 用户token
-     * @return UserDto
+     * @return User
      */
     @Override
     @SneakyThrows
-    public UserDto getUserByToken(String token) {
+    public User getUserByToken(String token) {
 
         String redisTokenKey = "TOKEN_" + token;
         String cacheData = redisTemplate.opsForValue().get(redisTokenKey);
@@ -209,7 +214,7 @@ public class UserService implements UserApi {
         // 刷新时间
         redisTemplate.expire(redisTokenKey, 1, TimeUnit.HOURS);
 
-        return MAPPER.readValue(cacheData, UserDto.class);
+        return MAPPER.readValue(cacheData, User.class);
     }
 
     /**
@@ -266,18 +271,18 @@ public class UserService implements UserApi {
      * 获取用户详细信息
      *
      * @param userId 用户ID
-     * @return UserInfoDto
+     * @return UserInfoTo
      */
     @Override
-    public UserInfoDto getUserInfo(Long userId) {
+    public UserInfoTo getUserInfo(Long userId) {
 
-        UserInfoDto userInfoDto = new UserInfoDto();
         UserInfo userInfo = userInfoDao.selectOne(Wrappers.<UserInfo>lambdaQuery().eq(UserInfo::getUserId, userId));
-        BeanUtils.copyProperties(userInfo, userInfoDto);
-        userInfoDto.setPhone(userDao.selectById(userId).getPhone());
-        userInfoDto.setSex(SexEnum.getType(userInfo.getSex()));
+        UserInfoTo userInfoTo = new UserInfoTo();
+        BeanUtils.copyProperties(userInfo, userInfoTo);
+        userInfoTo.setPhone(userDao.selectById(userId).getPhone());
+        userInfoTo.setGender(SexEnum.getType(userInfo.getSex()));
 
-        return userInfoDto;
+        return userInfoTo;
     }
 
     /**
@@ -287,10 +292,10 @@ public class UserService implements UserApi {
      * @param sex 性别
      * @param age 年龄
      * @param city 城市
-     * @return List<UserInfoDto>
+     * @return List<UserInfoTo>
      */
     @Override
-    public List<UserInfoDto> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city) {
+    public List<UserInfoTo> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city) {
 
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("user_id", userIds);
@@ -307,15 +312,15 @@ public class UserService implements UserApi {
         List<UserInfo> userInfos = userInfoDao.selectList(queryWrapper);
         Map<Long, String> userMap = userDao.selectBatchIds(userIds)
                 .stream().collect(Collectors.toMap(User::getId, User::getPhone));
-        List<UserInfoDto> userInfoDtos = new ArrayList<>();
+        List<UserInfoTo> userInfoToList = new ArrayList<>();
         for (UserInfo userInfo : userInfos) {
-            UserInfoDto userInfoDto = new UserInfoDto();
-            BeanUtils.copyProperties(userInfo, userInfoDto);
-            userInfoDto.setPhone(userMap.get(userInfo.getUserId()));
-            userInfoDto.setSex(SexEnum.getType(userInfo.getSex()));
-            userInfoDtos.add(userInfoDto);
+            UserInfoTo userInfoTo = new UserInfoTo();
+            BeanUtils.copyProperties(userInfo, userInfoTo);
+            userInfoTo.setPhone(userMap.get(userInfo.getUserId()));
+            userInfoTo.setGender(SexEnum.getType(userInfo.getSex()));
+            userInfoToList.add(userInfoTo);
         }
 
-        return userInfoDtos;
+        return userInfoToList;
     }
 }

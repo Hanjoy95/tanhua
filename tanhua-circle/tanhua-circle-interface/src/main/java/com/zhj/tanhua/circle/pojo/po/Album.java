@@ -1,4 +1,4 @@
-package com.zhj.tanhua.circle.po;
+package com.zhj.tanhua.circle.pojo.po;
 
 import lombok.Data;
 import org.bson.types.ObjectId;

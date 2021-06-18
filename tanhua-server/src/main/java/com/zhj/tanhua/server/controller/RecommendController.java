@@ -1,11 +1,11 @@
 package com.zhj.tanhua.server.controller;
 
 import com.zhj.tanhua.common.exception.BaseException;
-import com.zhj.tanhua.common.vo.PageResult;
-import com.zhj.tanhua.common.vo.ResponseResult;
+import com.zhj.tanhua.common.result.PageResult;
+import com.zhj.tanhua.common.result.ResponseResult;
 import com.zhj.tanhua.server.service.RecommendService;
-import com.zhj.tanhua.server.vo.RecommendUserVo;
-import com.zhj.tanhua.server.vo.TodayBestVo;
+import com.zhj.tanhua.server.vo.recommend.RecommendUserVo;
+import com.zhj.tanhua.server.vo.recommend.TodayBestVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;

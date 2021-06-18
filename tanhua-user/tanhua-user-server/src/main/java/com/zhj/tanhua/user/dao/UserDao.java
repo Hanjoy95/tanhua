@@ -1,7 +1,7 @@
 package com.zhj.tanhua.user.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.zhj.tanhua.user.po.User;
+import com.zhj.tanhua.user.pojo.po.User;
 
 /**
  * @author huanjie.zhuang
