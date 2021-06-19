@@ -5,6 +5,7 @@ import com.zhj.tanhua.recommend.api.RecommendUserApi;
 import com.zhj.tanhua.recommend.pojo.po.RecommendUser;
 import com.zhj.tanhua.server.pojo.vo.recommend.RecommendUserVo;
 import com.zhj.tanhua.server.pojo.vo.recommend.TodayBestVo;
+import com.zhj.tanhua.server.web.threadlocal.UserThreadLocal;
 import com.zhj.tanhua.user.pojo.po.User;
 import com.zhj.tanhua.user.pojo.to.UserInfoTo;
 import lombok.SneakyThrows;
@@ -17,6 +18,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * 推荐模块的服务层
+ *
  * @author huanjie.zhuang
  * @date 2021/6/13
  */
@@ -29,19 +32,16 @@ public class RecommendService {
     @DubboReference(version = "1.0", url = "dubbo://127.0.0.1:19200")
     RecommendUserApi recommendUserApi;
 
-    private static final String COMMA = ",";
-
     /**
      * 获取今日佳人
      *
-     * @param token 用户token
      * @return TodayBestVo
      */
     @SneakyThrows
-    public TodayBestVo getTodayBest(String token) {
+    public TodayBestVo getTodayBest() {
 
-        // 根据token查询当前登录的用户信息
-        User user = userService.getUserByToken(token);
+        // 获取当前登录用户
+        User user = UserThreadLocal.get();
 
         // 查询缘分值最高的推荐用户
         RecommendUser recommendUser = recommendUserApi.getBestRecommendUser(user.getId());
@@ -52,7 +52,7 @@ public class RecommendService {
         // 构建今日佳人
         TodayBestVo todayBest = new TodayBestVo();
         BeanUtils.copyProperties(userInfo, todayBest);
-        todayBest.setTags(Arrays.asList(userInfo.getTags().split(COMMA)));
+        todayBest.setTags(Arrays.asList(userInfo.getTags().split(",")));
         todayBest.setUserId(recommendUser.getUserId());
         todayBest.setFate(recommendUser.getFate().intValue());
 
@@ -62,15 +62,14 @@ public class RecommendService {
     /**
      * 获取推荐用户列表
      *
-     * @param token 用户token
      * @param recommendUserVo  获取推荐用户列表参数
      * @return PageResult<TodayBestVo>
      */
     @SneakyThrows
-    public PageResult<TodayBestVo> getRecommendUsers(String token, RecommendUserVo recommendUserVo) {
+    public PageResult<TodayBestVo> getRecommendUsers(RecommendUserVo recommendUserVo) {
 
-        // 根据token查询当前登录的用户信息
-        User user = userService.getUserByToken(token);
+        // 获取当前登录用户
+        User user = UserThreadLocal.get();
 
         // 查询推荐用户列表
         PageResult<RecommendUser> recommendUsers = recommendUserApi.getRecommendUsers(user.getId(),
@@ -88,7 +87,7 @@ public class RecommendService {
         for (UserInfoTo userInfoTo : userInfoTos) {
             TodayBestVo todayBest = new TodayBestVo();
             BeanUtils.copyProperties(userInfoTo, todayBest);
-            todayBest.setTags(Arrays.asList(userInfoTo.getTags().split(COMMA)));
+            todayBest.setTags(Arrays.asList(userInfoTo.getTags().split(",")));
             todayBest.setFate(recommendUserMap.get(userInfoTo.getUserId()).intValue());
             todayBests.add(todayBest);
         }

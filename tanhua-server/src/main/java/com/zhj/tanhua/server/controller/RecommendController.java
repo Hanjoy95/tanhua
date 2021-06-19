@@ -1,22 +1,24 @@
 package com.zhj.tanhua.server.controller;
 
-import com.zhj.tanhua.common.constant.ThConstant;
 import com.zhj.tanhua.common.exception.BaseException;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.ResponseResult;
 import com.zhj.tanhua.server.service.RecommendService;
 import com.zhj.tanhua.server.pojo.vo.recommend.RecommendUserVo;
 import com.zhj.tanhua.server.pojo.vo.recommend.TodayBestVo;
+import com.zhj.tanhua.server.web.annotation.Auth;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 /**
+ * 推荐模块的控制层
+ *
  * @author huanjie.zhuang
  * @date 2021/6/13
  */
-@Api(tags = "推荐用户")
+@Api(tags = "推荐")
 @RequestMapping("tanhua/recommend")
 @RestController
 public class RecommendController {
@@ -25,35 +27,34 @@ public class RecommendController {
     private RecommendService recommendService;
 
     /**
-     * 获取今日佳人
+     * 推荐今日佳人
      *
-     * @param token 用户token
      * @return ResponseResult<TodayBestVo>
      */
-    @ApiOperation("获取今日佳人")
+    @ApiOperation("推荐今日佳人")
     @GetMapping("todayBest")
-    public ResponseResult<TodayBestVo> getTodayBest(@RequestHeader(ThConstant.AUTHORIZATION) String token) {
+    @Auth
+    public ResponseResult<TodayBestVo> getTodayBest() {
 
         try {
-            return ResponseResult.ok(recommendService.getTodayBest(token));
+            return ResponseResult.ok(recommendService.getTodayBest());
         }catch (BaseException e) {
             return ResponseResult.fail(e.getStatus(), e.getMessage());
         }
     }
 
     /**
-     * 获取推荐用户列表
+     * 推荐用户
      *
-     * @param token 用户token
-     * @param recommendUserVo  获取推荐用户列表参数
+     * @param recommendUserVo  推荐用户参数
      * @return ResponseResult<PageResult<TodayBestVo>>
      */
-    @ApiOperation("获取推荐用户列表")
+    @ApiOperation("推荐用户")
     @PostMapping("users")
-    public ResponseResult<PageResult<TodayBestVo>> getRecommendUsers(@RequestHeader(ThConstant.AUTHORIZATION) String token,
-                                                                     @RequestBody RecommendUserVo recommendUserVo) {
+    @Auth
+    public ResponseResult<PageResult<TodayBestVo>> getRecommendUsers(@RequestBody RecommendUserVo recommendUserVo) {
         try {
-            return ResponseResult.ok(recommendService.getRecommendUsers(token, recommendUserVo));
+            return ResponseResult.ok(recommendService.getRecommendUsers(recommendUserVo));
         } catch (BaseException e) {
             return ResponseResult.fail(e.getStatus(), e.getMessage());
         }
