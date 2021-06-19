@@ -2,9 +2,9 @@ package com.zhj.tanhua.server.service;
 
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.recommend.api.RecommendUserApi;
-import com.zhj.tanhua.recommend.po.RecommendUser;
-import com.zhj.tanhua.server.vo.recommend.RecommendUserVo;
-import com.zhj.tanhua.server.vo.recommend.TodayBestVo;
+import com.zhj.tanhua.recommend.pojo.po.RecommendUser;
+import com.zhj.tanhua.server.pojo.vo.recommend.RecommendUserVo;
+import com.zhj.tanhua.server.pojo.vo.recommend.TodayBestVo;
 import com.zhj.tanhua.user.pojo.po.User;
 import com.zhj.tanhua.user.pojo.to.UserInfoTo;
 import lombok.SneakyThrows;

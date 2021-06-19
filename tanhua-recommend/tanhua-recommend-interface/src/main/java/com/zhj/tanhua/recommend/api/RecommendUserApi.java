@@ -1,7 +1,7 @@
 package com.zhj.tanhua.recommend.api;
 
 import com.zhj.tanhua.common.result.PageResult;
-import com.zhj.tanhua.recommend.po.RecommendUser;
+import com.zhj.tanhua.recommend.pojo.po.RecommendUser;
 
 /**
  * @author huanjie.zhuang

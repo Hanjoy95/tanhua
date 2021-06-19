@@ -1,5 +1,6 @@
 package com.zhj.tanhua.server.controller;
 
+import com.zhj.tanhua.common.constant.ThConstant;
 import com.zhj.tanhua.common.exception.BaseException;
 import com.zhj.tanhua.common.result.ResponseResult;
 import com.zhj.tanhua.server.service.UserService;
@@ -24,8 +25,6 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-
-    private static final String AUTHORIZATION = "authorization";
 
     /**
      * 用户登录
@@ -88,7 +87,7 @@ public class UserController {
      */
     @ApiOperation("保存用户信息")
     @PostMapping("saveInfo")
-    public ResponseResult<Void> saveUserInfo(@RequestHeader(AUTHORIZATION) String token,
+    public ResponseResult<Void> saveUserInfo(@RequestHeader(ThConstant.AUTHORIZATION) String token,
                                              @RequestBody UserInfoDto userInfoDto) {
         try {
             userService.saveUserInfo(token, userInfoDto);
@@ -108,7 +107,7 @@ public class UserController {
      */
     @ApiOperation("保存用户头像")
     @PostMapping("saveAvatar")
-    public ResponseResult<Void> saveAvatar(@RequestHeader(AUTHORIZATION) String token,
+    public ResponseResult<Void> saveAvatar(@RequestHeader(ThConstant.AUTHORIZATION) String token,
                                            @RequestParam("avatar") MultipartFile file) {
         try {
             userService.saveAvatar(token, file);
@@ -127,7 +126,7 @@ public class UserController {
      */
     @ApiOperation("获取用户详细信息")
     @GetMapping("info")
-    public ResponseResult<UserInfoTo> getUserInfo(@RequestHeader(AUTHORIZATION) String token) {
+    public ResponseResult<UserInfoTo> getUserInfo(@RequestHeader(ThConstant.AUTHORIZATION) String token) {
 
         try {
             return ResponseResult.ok(userService.getUserInfo(userService.getUserByToken(token).getId()));

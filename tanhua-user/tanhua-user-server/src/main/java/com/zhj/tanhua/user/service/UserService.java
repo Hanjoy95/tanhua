@@ -37,6 +37,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
+ * 用户模块的服务层
+ *
  * @author huanjie.zhuang
  * @date 2021/6/12
  */
@@ -76,8 +78,7 @@ public class UserService implements UserApi {
     public UserTo login(String phone, String checkCode) {
 
         // 校验验证码是否正确
-        String redisKey = "CHECK_CODE_" + phone;
-        String value = redisTemplate.opsForValue().get(redisKey);
+        String value = redisTemplate.opsForValue().get("CHECK_CODE_" + phone);
 
         if (StringUtils.isEmpty(value)) {
             throw new CheckCodeExpiredException("checkCode expired, please sent again");
@@ -115,9 +116,8 @@ public class UserService implements UserApi {
                 .compact();
 
         // 将token存储到redis中
-        String redisTokenKey = "TOKEN_" + token;
         String redisTokenValue = MAPPER.writeValueAsString(user);
-        redisTemplate.opsForValue().set(redisTokenKey, redisTokenValue, Duration.ofHours(1));
+        redisTemplate.opsForValue().set("TOKEN_" + token, redisTokenValue, Duration.ofHours(1));
 
         // 发送消息
         try {
@@ -130,10 +130,6 @@ public class UserService implements UserApi {
             log.error("phone: {}, sent message error", phone, e);
             throw new SentMessageException("phone: {}, sent message error", e);
         }
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("isNew", isNew);
-        result.put("token", token);
 
         return UserTo.builder().isNew(isNew).userId(user.getId()).token(token).build();
     }

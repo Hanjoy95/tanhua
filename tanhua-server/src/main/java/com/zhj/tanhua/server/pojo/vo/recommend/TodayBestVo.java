@@ -1,4 +1,4 @@
-package com.zhj.tanhua.server.vo.recommend;
+package com.zhj.tanhua.server.pojo.vo.recommend;
 
 import com.zhj.tanhua.user.enums.SexEnum;
 import io.swagger.annotations.ApiModel;

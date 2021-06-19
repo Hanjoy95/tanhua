@@ -2,7 +2,12 @@ package com.zhj.tanhua.circle.api;
 
 import com.zhj.tanhua.circle.pojo.dto.PublishDto;
 import com.zhj.tanhua.circle.pojo.po.Publish;
+import com.zhj.tanhua.common.enums.FileTypeEnum;
 import com.zhj.tanhua.common.result.PageResult;
+import com.zhj.tanhua.common.result.UploadFileResult;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 /**
  * @author huanjie.zhuang
@@ -26,4 +31,13 @@ public interface CircleApi {
      * @return PageResult<PublishDto>
      */
     PageResult<Publish> queryPublishList(Long userId, Integer pageNum, Integer pageSize);
+
+    /**
+     * 批量上传媒体文件
+     *
+     * @param files 需要上传的媒体文件
+     * @param fileType 文件类型
+     * @return List<UploadFileResult>
+     */
+    List<UploadFileResult> uploadFiles(List<MultipartFile> files, FileTypeEnum fileType);
 }

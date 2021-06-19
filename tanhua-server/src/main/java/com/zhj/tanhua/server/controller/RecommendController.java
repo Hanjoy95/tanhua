@@ -1,11 +1,12 @@
 package com.zhj.tanhua.server.controller;
 
+import com.zhj.tanhua.common.constant.ThConstant;
 import com.zhj.tanhua.common.exception.BaseException;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.ResponseResult;
 import com.zhj.tanhua.server.service.RecommendService;
-import com.zhj.tanhua.server.vo.recommend.RecommendUserVo;
-import com.zhj.tanhua.server.vo.recommend.TodayBestVo;
+import com.zhj.tanhua.server.pojo.vo.recommend.RecommendUserVo;
+import com.zhj.tanhua.server.pojo.vo.recommend.TodayBestVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +24,6 @@ public class RecommendController {
     @Autowired
     private RecommendService recommendService;
 
-    private static final String AUTHORIZATION = "authorization";
-
     /**
      * 获取今日佳人
      *
@@ -33,7 +32,7 @@ public class RecommendController {
      */
     @ApiOperation("获取今日佳人")
     @GetMapping("todayBest")
-    public ResponseResult<TodayBestVo> getTodayBest(@RequestHeader(AUTHORIZATION) String token) {
+    public ResponseResult<TodayBestVo> getTodayBest(@RequestHeader(ThConstant.AUTHORIZATION) String token) {
 
         try {
             return ResponseResult.ok(recommendService.getTodayBest(token));
@@ -51,7 +50,7 @@ public class RecommendController {
      */
     @ApiOperation("获取推荐用户列表")
     @PostMapping("users")
-    public ResponseResult<PageResult<TodayBestVo>> getRecommendUsers(@RequestHeader(AUTHORIZATION) String token,
+    public ResponseResult<PageResult<TodayBestVo>> getRecommendUsers(@RequestHeader(ThConstant.AUTHORIZATION) String token,
                                                                      @RequestBody RecommendUserVo recommendUserVo) {
         try {
             return ResponseResult.ok(recommendService.getRecommendUsers(token, recommendUserVo));
