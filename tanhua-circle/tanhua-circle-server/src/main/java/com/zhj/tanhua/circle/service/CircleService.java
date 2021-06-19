@@ -160,7 +160,7 @@ public class CircleService implements CircleApi {
                 }
             }
 
-            // 文件路径, {fileType}/{yyyy}/{MM}/{dd}/{currentTimeMillis}.jpg
+            // 文件路径, {fileType}/{yyyy}/{MM}/{dd}/{currentTimeMillis}.{mediaType}
             String fileUrl = fileType.getType() + new SimpleDateFormat("/yyyy/MM/dd/").format(new Date()) +
                     System.currentTimeMillis() + StringUtils.substringAfterLast(file.getOriginalFilename(), ".");
 

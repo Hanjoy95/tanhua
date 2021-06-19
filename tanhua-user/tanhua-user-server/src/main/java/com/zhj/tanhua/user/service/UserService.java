@@ -1,9 +1,11 @@
 package com.zhj.tanhua.user.service;
 
+import com.aliyun.oss.OSS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zhj.tanhua.common.enums.ImageTypeEnum;
 import com.zhj.tanhua.common.exception.*;
 import com.zhj.tanhua.user.api.UserApi;
 import com.zhj.tanhua.user.config.RabbitmqConfig;
@@ -31,6 +33,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -54,13 +57,15 @@ public class UserService implements UserApi {
     private RabbitTemplate rabbitTemplate;
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
-//    @Autowired
-//    private PicUploadService picUploadService;
-//    @Autowired
-//    private FaceEngineService faceEngineService;
+    @Autowired
+    private OSS oss;
 
     @Value("${jwt.secret}")
     private String secret;
+    @Value("${aliyun.bucketName}")
+    private String bucketName;
+    @Value("${aliyun.urlPrefix}")
+    private String urlPrefix;
 
     private static final String DEFAULT_PASSWORD = "123456";
     private static final ObjectMapper MAPPER = new ObjectMapper()
@@ -243,24 +248,26 @@ public class UserService implements UserApi {
     @SneakyThrows
     public void saveAvatar(Long userId, MultipartFile file) {
 
-//        // 校验图片是否为人像
-//        if (!faceEngineService.checkIsPortrait(file.getBytes())) {
-//           throw new BaseException("图片非人像，请重新上传!");
-//        }
-//
-//        // 图片上传到阿里云OSS
-//        PicUploadResult uploadResult = picUploadService.upload(file);
-//        if (null == uploadResult.getName()) {
-//            throw new BaseException("上传头像失败");
-//        }
-//
-//        userInfoDao.update(null, Wrappers.<UserInfo>lambdaUpdate()
-//                .set(UserInfo::getLogo, uploadResult.getName())
-//                .eq(UserInfo::getId, result.getData().getId()));
+        // 校验图片文件后缀名
+        if (Arrays.stream(ImageTypeEnum.values()).noneMatch(image ->
+                StringUtils.endsWithIgnoreCase(file.getOriginalFilename(), image.getType()))) {
+            throw new BaseException("image type error, only support jpg, jpeg, gif, png");
+        }
+
+        // 文件路径, avatar/{userId}/{currentTimeMillis}.{imageType}
+        String fileUrl = "avatar/" + userId + "/" + System.currentTimeMillis() +
+                StringUtils.substringAfterLast(file.getOriginalFilename(), ".");
+
+        // 上传阿里云OSS
+        try {
+            oss.putObject(bucketName, fileUrl, new ByteArrayInputStream(file.getBytes()));
+        } catch (Exception e) {
+            throw new BaseException(e.getMessage());
+        }
 
         userInfoDao.update(null, Wrappers.<UserInfo>lambdaUpdate()
-                .set(UserInfo::getAvatar, UUID.randomUUID())
-                .eq(UserInfo::getId, userId));
+                .set(UserInfo::getAvatar, urlPrefix + fileUrl)
+                .eq(UserInfo::getUserId, userId));
     }
 
     /**
