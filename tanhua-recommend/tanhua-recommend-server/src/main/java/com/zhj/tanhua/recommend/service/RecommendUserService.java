@@ -3,7 +3,7 @@ package com.zhj.tanhua.recommend.service;
 import com.zhj.tanhua.common.exception.NotFoundException;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.recommend.api.RecommendUserApi;
-import com.zhj.tanhua.recommend.po.RecommendUser;
+import com.zhj.tanhua.recommend.pojo.po.RecommendUser;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;

@@ -36,6 +36,22 @@ public class Feed implements Serializable {
      */
     private Long userId;
     /**
+     * 点赞数
+     */
+    private Integer likeNum;
+    /**
+     * 评论数
+     */
+    private Integer commentNum;
+    /**
+     * 是否点赞
+     */
+    private Boolean hasLike;
+    /**
+     * 是否评论
+     */
+    private Boolean hasComment;
+    /**
      * 发布时间
      */
     @Indexed

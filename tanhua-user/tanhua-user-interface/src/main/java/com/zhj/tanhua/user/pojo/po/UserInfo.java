@@ -21,12 +21,12 @@ public class UserInfo implements Serializable {
     private String tags;
     private Integer sex;
     private Integer age;
-    private String edu;
+    private Integer edu;
     private String school;
     private String city;
     private String birthday;
     private String coverPic;
     private String industry;
     private String income;
-    private String single;
+    private Integer status;
 }

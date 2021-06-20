@@ -12,7 +12,7 @@ import java.util.List;
  * @author huanjie.zhuang
  * @date 2021/6/12
  */
-@ApiModel("分页对象")
+@ApiModel("分页结果")
 @Data
 @Builder
 public class PageResult<T> implements Serializable {

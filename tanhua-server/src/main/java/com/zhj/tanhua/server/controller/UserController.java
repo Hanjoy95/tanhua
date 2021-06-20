@@ -3,6 +3,8 @@ package com.zhj.tanhua.server.controller;
 import com.zhj.tanhua.common.exception.BaseException;
 import com.zhj.tanhua.common.result.ResponseResult;
 import com.zhj.tanhua.server.service.UserService;
+import com.zhj.tanhua.server.web.annotation.Auth;
+import com.zhj.tanhua.server.web.threadlocal.UserThreadLocal;
 import com.zhj.tanhua.user.pojo.dto.UserInfoDto;
 import com.zhj.tanhua.user.pojo.po.User;
 import com.zhj.tanhua.user.pojo.to.UserInfoTo;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
+ * 用户模块的控制层
+ *
  * @author huanjie.zhuang
  * @date 2021/6/13
  */
@@ -25,8 +29,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    private static final String AUTHORIZATION = "authorization";
-
     /**
      * 用户登录
      *
@@ -34,7 +36,7 @@ public class UserController {
      * @param checkCode  验证码
      * @return ResponseResult<UserTo>
      */
-    @ApiOperation("用户登录")
+    @ApiOperation("登录")
     @GetMapping("login")
     public ResponseResult<UserTo> login(@RequestParam("phone") String phone,
                                         @RequestParam("checkCode") String checkCode){
@@ -82,16 +84,15 @@ public class UserController {
     /**
      * 完善个人信息
      *
-     * @param token 用户token
      * @param userInfoDto 用户信息
-     * @return ResponseResult<Object>
+     * @return ResponseResult<Void>
      */
-    @ApiOperation("保存用户信息")
+    @ApiOperation("保存信息")
     @PostMapping("saveInfo")
-    public ResponseResult<Void> saveUserInfo(@RequestHeader(AUTHORIZATION) String token,
-                                             @RequestBody UserInfoDto userInfoDto) {
+    @Auth
+    public ResponseResult<Void> saveUserInfo(@RequestBody UserInfoDto userInfoDto) {
         try {
-            userService.saveUserInfo(token, userInfoDto);
+            userService.saveUserInfo(userInfoDto);
         } catch (BaseException e) {
             return ResponseResult.fail(e.getStatus(), e.getMessage());
         }
@@ -102,16 +103,15 @@ public class UserController {
     /**
      * 上传头像
      *
-     * @param token 用户token
      * @param file 用户头像图片文件
      * @return ResponseResult<Object>
      */
-    @ApiOperation("保存用户头像")
+    @ApiOperation("保存头像")
     @PostMapping("saveAvatar")
-    public ResponseResult<Void> saveAvatar(@RequestHeader(AUTHORIZATION) String token,
-                                           @RequestParam("avatar") MultipartFile file) {
+    @Auth
+    public ResponseResult<Void> saveAvatar(@RequestParam("avatar") MultipartFile file) {
         try {
-            userService.saveAvatar(token, file);
+            userService.saveAvatar(file);
         } catch (BaseException e) {
             return ResponseResult.fail(e.getStatus(), e.getMessage());
         }
@@ -122,15 +122,15 @@ public class UserController {
     /**
      * 获取用户详细信息
      *
-     * @param token 用户token
      * @return ResponseResult<UserInfoDto>
      */
-    @ApiOperation("获取用户详细信息")
+    @ApiOperation("获取详细信息")
     @GetMapping("info")
-    public ResponseResult<UserInfoTo> getUserInfo(@RequestHeader(AUTHORIZATION) String token) {
+    @Auth
+    public ResponseResult<UserInfoTo> getUserInfo() {
 
         try {
-            return ResponseResult.ok(userService.getUserInfo(userService.getUserByToken(token).getId()));
+            return ResponseResult.ok(userService.getUserInfo(UserThreadLocal.get().getId()));
         } catch (BaseException e) {
             return ResponseResult.fail(e.getStatus(), e.getMessage());
         }

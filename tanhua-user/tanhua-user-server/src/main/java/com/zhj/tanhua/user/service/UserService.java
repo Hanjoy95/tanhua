@@ -1,15 +1,19 @@
 package com.zhj.tanhua.user.service;
 
+import com.aliyun.oss.OSS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zhj.tanhua.common.enums.ImageTypeEnum;
 import com.zhj.tanhua.common.exception.*;
 import com.zhj.tanhua.user.api.UserApi;
 import com.zhj.tanhua.user.config.RabbitmqConfig;
 import com.zhj.tanhua.user.dao.UserDao;
 import com.zhj.tanhua.user.dao.UserInfoDao;
+import com.zhj.tanhua.user.enums.EduEnum;
 import com.zhj.tanhua.user.enums.SexEnum;
+import com.zhj.tanhua.user.enums.StatusEnum;
 import com.zhj.tanhua.user.pojo.dto.UserInfoDto;
 import com.zhj.tanhua.user.pojo.po.UserInfo;
 import com.zhj.tanhua.user.pojo.po.User;
@@ -31,12 +35,15 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
+ * 用户模块的服务层
+ *
  * @author huanjie.zhuang
  * @date 2021/6/12
  */
@@ -52,13 +59,15 @@ public class UserService implements UserApi {
     private RabbitTemplate rabbitTemplate;
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
-//    @Autowired
-//    private PicUploadService picUploadService;
-//    @Autowired
-//    private FaceEngineService faceEngineService;
+    @Autowired
+    private OSS oss;
 
     @Value("${jwt.secret}")
     private String secret;
+    @Value("${aliyun.bucketName}")
+    private String bucketName;
+    @Value("${aliyun.urlPrefix}")
+    private String urlPrefix;
 
     private static final String DEFAULT_PASSWORD = "123456";
     private static final ObjectMapper MAPPER = new ObjectMapper()
@@ -76,8 +85,7 @@ public class UserService implements UserApi {
     public UserTo login(String phone, String checkCode) {
 
         // 校验验证码是否正确
-        String redisKey = "CHECK_CODE_" + phone;
-        String value = redisTemplate.opsForValue().get(redisKey);
+        String value = redisTemplate.opsForValue().get("CHECK_CODE_" + phone);
 
         if (StringUtils.isEmpty(value)) {
             throw new CheckCodeExpiredException("checkCode expired, please sent again");
@@ -115,9 +123,8 @@ public class UserService implements UserApi {
                 .compact();
 
         // 将token存储到redis中
-        String redisTokenKey = "TOKEN_" + token;
         String redisTokenValue = MAPPER.writeValueAsString(user);
-        redisTemplate.opsForValue().set(redisTokenKey, redisTokenValue, Duration.ofHours(1));
+        redisTemplate.opsForValue().set("TOKEN_" + token, redisTokenValue, Duration.ofHours(1));
 
         // 发送消息
         try {
@@ -130,10 +137,6 @@ public class UserService implements UserApi {
             log.error("phone: {}, sent message error", phone, e);
             throw new SentMessageException("phone: {}, sent message error", e);
         }
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("isNew", isNew);
-        result.put("token", token);
 
         return UserTo.builder().isNew(isNew).userId(user.getId()).token(token).build();
     }
@@ -227,7 +230,10 @@ public class UserService implements UserApi {
 
         UserInfo userInfo = new UserInfo();
         BeanUtils.copyProperties(userInfoDto, userInfo);
+        userInfo.setTags(StringUtils.join(userInfoDto.getTags().toArray(), ","));
         userInfo.setSex(userInfoDto.getSex().getValue());
+        userInfo.setEdu(userInfoDto.getEdu().getValue());
+        userInfo.setStatus(userInfoDto.getStatus().getValue());
 
         try {
             userInfoDao.insert(userInfo);
@@ -247,24 +253,26 @@ public class UserService implements UserApi {
     @SneakyThrows
     public void saveAvatar(Long userId, MultipartFile file) {
 
-//        // 校验图片是否为人像
-//        if (!faceEngineService.checkIsPortrait(file.getBytes())) {
-//           throw new BaseException("图片非人像，请重新上传!");
-//        }
-//
-//        // 图片上传到阿里云OSS
-//        PicUploadResult uploadResult = picUploadService.upload(file);
-//        if (null == uploadResult.getName()) {
-//            throw new BaseException("上传头像失败");
-//        }
-//
-//        userInfoDao.update(null, Wrappers.<UserInfo>lambdaUpdate()
-//                .set(UserInfo::getLogo, uploadResult.getName())
-//                .eq(UserInfo::getId, result.getData().getId()));
+        // 校验图片文件后缀名
+        if (ImageTypeEnum.UNKNOWN.equals(ImageTypeEnum.getType(StringUtils
+                .substringAfterLast(file.getOriginalFilename(), ".")))) {
+            throw new BaseException("image type error, only support jpg, jpeg, gif, png");
+        }
+
+        // 文件路径, avatar/{userId}/{currentTimeMillis}.{imageType}
+        String fileUrl = "avatar/" + userId + "/" + System.currentTimeMillis() + "." +
+                StringUtils.substringAfterLast(file.getOriginalFilename(), ".");
+
+        // 上传阿里云OSS
+        try {
+            oss.putObject(bucketName, fileUrl, new ByteArrayInputStream(file.getBytes()));
+        } catch (Exception e) {
+            throw new BaseException(e.getMessage());
+        }
 
         userInfoDao.update(null, Wrappers.<UserInfo>lambdaUpdate()
-                .set(UserInfo::getAvatar, UUID.randomUUID())
-                .eq(UserInfo::getId, userId));
+                .set(UserInfo::getAvatar, urlPrefix + fileUrl)
+                .eq(UserInfo::getUserId, userId));
     }
 
     /**
@@ -280,7 +288,10 @@ public class UserService implements UserApi {
         UserInfoTo userInfoTo = new UserInfoTo();
         BeanUtils.copyProperties(userInfo, userInfoTo);
         userInfoTo.setPhone(userDao.selectById(userId).getPhone());
-        userInfoTo.setGender(SexEnum.getType(userInfo.getSex()));
+        userInfoTo.setTags(Arrays.asList(userInfo.getTags().split(",")));
+        userInfoTo.setSex(SexEnum.getType(userInfo.getSex()));
+        userInfoTo.setEdu(EduEnum.getType(userInfo.getEdu()));
+        userInfoTo.setStatus(StatusEnum.getType(userInfo.getStatus()));
 
         return userInfoTo;
     }
@@ -317,7 +328,10 @@ public class UserService implements UserApi {
             UserInfoTo userInfoTo = new UserInfoTo();
             BeanUtils.copyProperties(userInfo, userInfoTo);
             userInfoTo.setPhone(userMap.get(userInfo.getUserId()));
-            userInfoTo.setGender(SexEnum.getType(userInfo.getSex()));
+            userInfoTo.setTags(Arrays.asList(userInfo.getTags().split(",")));
+            userInfoTo.setSex(SexEnum.getType(userInfo.getSex()));
+            userInfoTo.setEdu(EduEnum.getType(userInfo.getEdu()));
+            userInfoTo.setStatus(StatusEnum.getType(userInfo.getStatus()));
             userInfoToList.add(userInfoTo);
         }
 

@@ -1,5 +1,6 @@
 package com.zhj.tanhua.server.service;
 
+import com.zhj.tanhua.server.web.threadlocal.UserThreadLocal;
 import com.zhj.tanhua.user.pojo.dto.UserInfoDto;
 import com.zhj.tanhua.user.pojo.po.User;
 import com.zhj.tanhua.user.pojo.to.UserInfoTo;
@@ -12,6 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 /**
+ * 用户模块的服务层
+ *
  * @author huanjie.zhuang
  * @date 2021/6/13
  */
@@ -55,12 +58,11 @@ public class UserService {
     /**
      * 完善个人信息
      *
-     * @param token 用户token
      * @param userInfoDto 用户信息
      */
-    public void saveUserInfo(String token, UserInfoDto userInfoDto) {
+    public void saveUserInfo(UserInfoDto userInfoDto) {
 
-        User user = getUserByToken(token);
+        User user = UserThreadLocal.get();
         userInfoDto.setUserId(user.getId());
         userApi.saveUserInfo(userInfoDto);
     }
@@ -68,12 +70,11 @@ public class UserService {
     /**
      * 上传头像
      *
-     * @param token 用户token
      * @param file 用户头像图片文件
      */
-    public void saveAvatar(String token, MultipartFile file) {
+    public void saveAvatar(MultipartFile file) {
 
-        User user = getUserByToken(token);
+        User user = UserThreadLocal.get();
         userApi.saveAvatar(user.getId(), file);
     }
 

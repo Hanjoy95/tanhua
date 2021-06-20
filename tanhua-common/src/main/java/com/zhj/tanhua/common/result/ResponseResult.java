@@ -26,19 +26,10 @@ public class ResponseResult<T> {
         this.status = ResponseStatus.SUCCESS;
     }
 
-    public ResponseResult(T data) {
-        this.status = ResponseStatus.SUCCESS;
-        this.data = data;
-    }
-
-    public ResponseResult(String message) {
-        this.status = ResponseStatus.SERVER_ERROR;
-        this.message = message;
-    }
-
-    public ResponseResult(ResponseStatus status, String message) {
+    public ResponseResult(ResponseStatus status, String message, T data) {
         this.status = status;
         this.message = message;
+        this.data = data;
     }
 
     public static<T> ResponseResult<T> ok() {
@@ -46,14 +37,18 @@ public class ResponseResult<T> {
     }
 
     public static<T> ResponseResult<T> ok(T data) {
-        return new ResponseResult<>(data);
+        return new ResponseResult<>(ResponseStatus.SUCCESS, null, data);
     }
 
     public static<T> ResponseResult<T> fail(String message) {
-        return new ResponseResult<>(message);
+        return new ResponseResult<>(ResponseStatus.SERVER_ERROR, message, null);
+    }
+
+    public static<T> ResponseResult<T> fail(T data) {
+        return new ResponseResult<>(ResponseStatus.SERVER_ERROR, null, data);
     }
 
     public static<T> ResponseResult<T> fail(ResponseStatus status, String message) {
-        return new ResponseResult<>(status, message);
+        return new ResponseResult<>(status, message, null);
     }
 }

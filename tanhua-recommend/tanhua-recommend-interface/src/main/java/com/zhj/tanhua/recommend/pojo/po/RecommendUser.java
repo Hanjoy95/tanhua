@@ -1,4 +1,4 @@
-package com.zhj.tanhua.recommend.po;
+package com.zhj.tanhua.recommend.pojo.po;
 
 import lombok.Data;
 import org.bson.types.ObjectId;

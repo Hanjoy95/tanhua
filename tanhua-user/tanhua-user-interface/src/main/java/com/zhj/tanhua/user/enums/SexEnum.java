@@ -1,13 +1,15 @@
 package com.zhj.tanhua.user.enums;
 
 /**
+ * 性别枚举
+ *
  * @author huanjie.zhuang
  * @date 2021/6/2
  */
 public enum SexEnum {
     man(0),
     women(1),
-    unknow(2);
+    unknown(2);
 
     private final int value;
 
@@ -25,6 +27,6 @@ public enum SexEnum {
                 return sexEnum;
             }
         }
-        return unknow;
+        return unknown;
     }
 }
