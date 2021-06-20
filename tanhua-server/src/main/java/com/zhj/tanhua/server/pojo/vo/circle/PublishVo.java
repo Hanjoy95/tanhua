@@ -6,6 +6,8 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  * 发布动态所需要前端传的参数
  *
@@ -19,7 +21,7 @@ public class PublishVo {
     @ApiModelProperty(value = "文本内容")
     private String text;
     @ApiModelProperty(value = "图片、视频")
-    private MultipartFile[] medias;
+    private List<MultipartFile> medias;
     @ApiModelProperty(value = "文件类型")
     private FileTypeEnum fileType;
     @ApiModelProperty(value = "是否重新发布")

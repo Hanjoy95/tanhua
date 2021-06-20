@@ -34,11 +34,11 @@ public class Publish implements Serializable {
      */
     private String text;
     /**
-     * 媒体数据，图片或小视频（url）
+     * 图片或小视频（url）
      */
     private List<String> medias;
     /**
-     * 谁可以看，1-公开，2-私密，3-部分可见，4-不给谁看
+     * 谁可以看，0-公开，1-私密，2-部分可见，3-不给谁看
      */
     private Integer seeType;
     /**

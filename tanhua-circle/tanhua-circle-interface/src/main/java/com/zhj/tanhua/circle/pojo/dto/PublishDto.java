@@ -21,7 +21,7 @@ public class PublishDto implements Serializable {
     private String text;
     @ApiModelProperty(value = "媒体数据，图片或小视频（url）", hidden = true)
     private List<String> medias;
-    @ApiModelProperty(value = "谁可以看，1-公开，2-私密，3-部分可见，4-不给谁看")
+    @ApiModelProperty(value = "谁可以看，0-公开，1-私密，2-部分可见，3-不给谁看")
     private Integer seeType;
     @ApiModelProperty(value = "部分可见的用户ID列表")
     private List<Long> seeList;

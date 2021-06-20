@@ -2,6 +2,7 @@ package com.zhj.tanhua.circle.api;
 
 import com.zhj.tanhua.circle.pojo.dto.PublishDto;
 import com.zhj.tanhua.circle.pojo.po.Publish;
+import com.zhj.tanhua.circle.pojo.to.FeedTo;
 import com.zhj.tanhua.common.enums.FileTypeEnum;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.UploadFileResult;
@@ -10,6 +11,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 /**
+ * 好友圈模块的dubbo接口
+ *
  * @author huanjie.zhuang
  * @date 2021/6/17
  */
@@ -23,19 +26,19 @@ public interface CircleApi {
     void savePublish(PublishDto publishDto);
 
     /**
-     * 查询好友动态
+     * 查询好友或推荐动态
      *
      * @param userId 用户ID
      * @param pageNum 当前页
      * @param pageSize 页大小
-     * @return PageResult<PublishDto>
+     * @return PageResult<FeedTo>
      */
-    PageResult<Publish> queryPublishList(Long userId, Integer pageNum, Integer pageSize);
+    PageResult<FeedTo> queryFeeds(Long userId, Integer pageNum, Integer pageSize);
 
     /**
-     * 批量上传媒体文件
+     * 批量上传文件
      *
-     * @param files 需要上传的媒体文件
+     * @param files 需要上传的文件
      * @param fileType 文件类型
      * @return List<UploadFileResult>
      */

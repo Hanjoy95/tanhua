@@ -31,15 +31,11 @@ public class Comment implements Serializable {
      */
     private Long userId;
     /**
-     * 评论类型，1-点赞，2-评论，3-喜欢
-     */
-    private Integer commentType;
-    /**
      * 评论内容
      */
     private String content;
     /**
-     * 是否为父节点，默认不是
+     * 是否为父节点
      */
     private Boolean isParent = false;
     /**

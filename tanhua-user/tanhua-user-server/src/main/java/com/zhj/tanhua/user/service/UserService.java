@@ -11,7 +11,9 @@ import com.zhj.tanhua.user.api.UserApi;
 import com.zhj.tanhua.user.config.RabbitmqConfig;
 import com.zhj.tanhua.user.dao.UserDao;
 import com.zhj.tanhua.user.dao.UserInfoDao;
+import com.zhj.tanhua.user.enums.EduEnum;
 import com.zhj.tanhua.user.enums.SexEnum;
+import com.zhj.tanhua.user.enums.StatusEnum;
 import com.zhj.tanhua.user.pojo.dto.UserInfoDto;
 import com.zhj.tanhua.user.pojo.po.UserInfo;
 import com.zhj.tanhua.user.pojo.po.User;
@@ -228,7 +230,10 @@ public class UserService implements UserApi {
 
         UserInfo userInfo = new UserInfo();
         BeanUtils.copyProperties(userInfoDto, userInfo);
+        userInfo.setTags(StringUtils.join(userInfoDto.getTags().toArray(), ","));
         userInfo.setSex(userInfoDto.getSex().getValue());
+        userInfo.setEdu(userInfoDto.getEdu().getValue());
+        userInfo.setStatus(userInfoDto.getStatus().getValue());
 
         try {
             userInfoDao.insert(userInfo);
@@ -249,13 +254,13 @@ public class UserService implements UserApi {
     public void saveAvatar(Long userId, MultipartFile file) {
 
         // 校验图片文件后缀名
-        if (Arrays.stream(ImageTypeEnum.values()).noneMatch(image ->
-                StringUtils.endsWithIgnoreCase(file.getOriginalFilename(), image.getType()))) {
+        if (ImageTypeEnum.UNKNOWN.equals(ImageTypeEnum.getType(StringUtils
+                .substringAfterLast(file.getOriginalFilename(), ".")))) {
             throw new BaseException("image type error, only support jpg, jpeg, gif, png");
         }
 
         // 文件路径, avatar/{userId}/{currentTimeMillis}.{imageType}
-        String fileUrl = "avatar/" + userId + "/" + System.currentTimeMillis() +
+        String fileUrl = "avatar/" + userId + "/" + System.currentTimeMillis() + "." +
                 StringUtils.substringAfterLast(file.getOriginalFilename(), ".");
 
         // 上传阿里云OSS
@@ -283,7 +288,10 @@ public class UserService implements UserApi {
         UserInfoTo userInfoTo = new UserInfoTo();
         BeanUtils.copyProperties(userInfo, userInfoTo);
         userInfoTo.setPhone(userDao.selectById(userId).getPhone());
-        userInfoTo.setGender(SexEnum.getType(userInfo.getSex()));
+        userInfoTo.setTags(Arrays.asList(userInfo.getTags().split(",")));
+        userInfoTo.setSex(SexEnum.getType(userInfo.getSex()));
+        userInfoTo.setEdu(EduEnum.getType(userInfo.getEdu()));
+        userInfoTo.setStatus(StatusEnum.getType(userInfo.getStatus()));
 
         return userInfoTo;
     }
@@ -320,7 +328,10 @@ public class UserService implements UserApi {
             UserInfoTo userInfoTo = new UserInfoTo();
             BeanUtils.copyProperties(userInfo, userInfoTo);
             userInfoTo.setPhone(userMap.get(userInfo.getUserId()));
-            userInfoTo.setGender(SexEnum.getType(userInfo.getSex()));
+            userInfoTo.setTags(Arrays.asList(userInfo.getTags().split(",")));
+            userInfoTo.setSex(SexEnum.getType(userInfo.getSex()));
+            userInfoTo.setEdu(EduEnum.getType(userInfo.getEdu()));
+            userInfoTo.setStatus(StatusEnum.getType(userInfo.getStatus()));
             userInfoToList.add(userInfoTo);
         }
 
