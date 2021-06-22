@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Data
 @ApiModel("发布动态")
-public class PublishVo {
+public class MomentVo {
 
     @ApiModelProperty(value = "文本内容")
     private String text;

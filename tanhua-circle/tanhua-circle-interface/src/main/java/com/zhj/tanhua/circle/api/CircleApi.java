@@ -1,7 +1,6 @@
 package com.zhj.tanhua.circle.api;
 
-import com.zhj.tanhua.circle.pojo.dto.PublishDto;
-import com.zhj.tanhua.circle.pojo.po.Publish;
+import com.zhj.tanhua.circle.pojo.dto.MomentDto;
 import com.zhj.tanhua.circle.pojo.to.FeedTo;
 import com.zhj.tanhua.common.enums.FileTypeEnum;
 import com.zhj.tanhua.common.result.PageResult;
@@ -19,11 +18,11 @@ import java.util.List;
 public interface CircleApi {
 
     /**
-     * 保存用户发布动态
+     * 保存用户动态
      *
-     * @param publishDto 发布内容
+     * @param momentDto 动态内容
      */
-    void savePublish(PublishDto publishDto);
+    void saveMoment(MomentDto momentDto);
 
     /**
      * 查询好友或推荐动态
@@ -43,4 +42,13 @@ public interface CircleApi {
      * @return List<UploadFileResult>
      */
     List<UploadFileResult> uploadFiles(List<MultipartFile> files, FileTypeEnum fileType);
+
+    /**
+     * 点赞或取消点赞
+     *
+     * @param userId 用户ID
+     * @param momentId 动态ID
+     * @param isLike true为点赞，false为取消点赞
+     */
+    void likeOrUnlike(Long userId, String momentId, Boolean isLike);
 }

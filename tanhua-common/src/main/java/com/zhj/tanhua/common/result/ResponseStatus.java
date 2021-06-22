@@ -17,7 +17,8 @@ public enum ResponseStatus {
     TOKEN_EXPIRED(4004, "token expired"),
     CHECK_CODE_EXPIRED(4005, "checkCode expired"),
     REMOTE_SERVER_ERROR(4006, "remote server error"),
-    SENT_MESSAGE_ERROR(4007, "sent message error");
+    SENT_MESSAGE_ERROR(4007, "sent message error"),
+    UPDATE_REPEAT_ERROR(4008, "update repeat error");
 
     private final Integer code;
     private final String message;

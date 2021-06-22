@@ -9,14 +9,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.io.Serializable;
 
 /**
- * 好友表
- *
  * @author huanjie.zhuang
- * @date 2021/6/17
+ * @date 2021/6/22
  */
 @Data
-@Document(collection = "circle_friend")
-public class Friend implements Serializable {
+@Document(collection = "circle_love")
+public class Love implements Serializable {
 
     /**
      * 主键ID
@@ -27,11 +25,12 @@ public class Friend implements Serializable {
      * 用户ID
      */
     @Indexed
-    private Long userId;
+    private Long loveUserId;
     /**
-     * 好友ID
+     * 发布内容
      */
-    private Long friendId;
+    @Indexed
+    private Long beLovedUserId;
     /**
      * 创建时间
      */

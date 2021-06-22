@@ -3,8 +3,8 @@ package com.zhj.tanhua.server.controller;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.ResponseResult;
 import com.zhj.tanhua.server.pojo.vo.circle.FeedVo;
-import com.zhj.tanhua.server.pojo.vo.circle.PublishFailedVo;
-import com.zhj.tanhua.server.pojo.vo.circle.PublishVo;
+import com.zhj.tanhua.server.pojo.vo.circle.MomentFailedVo;
+import com.zhj.tanhua.server.pojo.vo.circle.MomentVo;
 import com.zhj.tanhua.server.service.CircleService;
 import com.zhj.tanhua.server.web.annotation.Auth;
 import io.swagger.annotations.Api;
@@ -27,17 +27,17 @@ public class CircleController {
     private CircleService circleService;
 
     /**
-     * 保存用户发布动态
+     * 发布动态
      *
-     * @param publishVo 发布动态参数
+     * @param momentVo 动态参数
      * @return ResponseResult<PublishFailedVo>
      */
     @Auth
-    @ApiOperation(value = "保存用户发布动态")
-    @PostMapping("/publish/save")
-    public ResponseResult<PublishFailedVo> savePublish(@RequestBody PublishVo publishVo) {
+    @ApiOperation(value = "发布动态")
+    @PostMapping("/publish/moment")
+    public ResponseResult<MomentFailedVo> publishMoment(@RequestBody MomentVo momentVo) {
 
-        PublishFailedVo result = circleService.savePublish(publishVo);
+        MomentFailedVo result = circleService.saveMoment(momentVo);
 
         return null == result ? ResponseResult.ok() : ResponseResult.fail(result);
     }

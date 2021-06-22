@@ -10,14 +10,14 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 发布表，用户发布的动态内容
+ * 动态表，用于存储自己发布的动态
  *
  * @author huanjie.zhuang
  * @date 2021/6/17
  */
 @Data
-@Document(collection = "circle_publish")
-public class Publish implements Serializable {
+@Document(collection = "circle_moment")
+public class Moment implements Serializable {
 
     /**
      * 主键ID

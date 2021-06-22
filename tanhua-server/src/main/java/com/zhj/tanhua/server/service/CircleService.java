@@ -3,13 +3,13 @@ package com.zhj.tanhua.server.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zhj.tanhua.circle.api.CircleApi;
-import com.zhj.tanhua.circle.pojo.dto.PublishDto;
+import com.zhj.tanhua.circle.pojo.dto.MomentDto;
 import com.zhj.tanhua.circle.pojo.to.FeedTo;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.UploadFileResult;
 import com.zhj.tanhua.server.pojo.vo.circle.FeedVo;
-import com.zhj.tanhua.server.pojo.vo.circle.PublishFailedVo;
-import com.zhj.tanhua.server.pojo.vo.circle.PublishVo;
+import com.zhj.tanhua.server.pojo.vo.circle.MomentFailedVo;
+import com.zhj.tanhua.server.pojo.vo.circle.MomentVo;
 import com.zhj.tanhua.server.web.threadlocal.UserThreadLocal;
 import com.zhj.tanhua.user.pojo.po.User;
 import com.zhj.tanhua.user.pojo.to.UserInfoTo;
@@ -46,28 +46,28 @@ public class CircleService {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     /**
-     * 保存用户发布动态
+     * 发布动态
      *
-     * @param publishVo 发布动态参数
-     * @return PublishFailedVo
+     * @param momentVo 动态参数
+     * @return MomentFailedVo
      */
     @SneakyThrows
-    public PublishFailedVo savePublish(PublishVo publishVo) {
+    public MomentFailedVo saveMoment(MomentVo momentVo) {
 
         User user = UserThreadLocal.get();
 
-        PublishDto publishDto = new PublishDto();
-        BeanUtils.copyProperties(publishVo, publishDto);
-        publishDto.setUserId(user.getId());
+        MomentDto momentDto = new MomentDto();
+        BeanUtils.copyProperties(momentVo, momentDto);
+        momentDto.setUserId(user.getId());
 
         // 文件上传
-        List<UploadFileResult> results = circleApi.uploadFiles(publishVo.getMedias(), publishVo.getFileType());
+        List<UploadFileResult> results = circleApi.uploadFiles(momentVo.getMedias(), momentVo.getFileType());
 
         // 若为重传，获取已上传成功的文件
         List<String> filesHasUpload = new ArrayList<>();
-        if (publishVo.getIsRePublish()) {
+        if (momentVo.getIsRePublish()) {
             filesHasUpload.addAll(MAPPER.readValue(redisTemplate.opsForValue().get("FILES_HAS_UPLOAD_" +
-                    publishVo.getRePublishId()), new TypeReference<List<String>>(){}));
+                    momentVo.getRePublishId()), new TypeReference<List<String>>(){}));
             log.info("files is re uploading");
         }
 
@@ -81,10 +81,10 @@ public class CircleService {
             }
         }
 
-        PublishFailedVo publishFailedVo = new PublishFailedVo();
+        MomentFailedVo momentFailedVo = new MomentFailedVo();
         if (CollectionUtils.isEmpty(uploadFailedFiles)) {
-            publishDto.setMedias(filesHasUpload);
-            circleApi.savePublish(publishDto);
+            momentDto.setMedias(filesHasUpload);
+            circleApi.saveMoment(momentDto);
             log.info("files upload success");
             return null;
         } else {
@@ -92,12 +92,12 @@ public class CircleService {
             redisTemplate.opsForValue().set("FILES_HAS_UPLOAD_" + rePublishId,
                                             MAPPER.writeValueAsString(filesHasUpload),
                                             Duration.ofHours(1));
-            publishFailedVo.setRePublishId(rePublishId);
-            publishFailedVo.setUploadFailedFiles(uploadFailedFiles);
+            momentFailedVo.setRePublishId(rePublishId);
+            momentFailedVo.setUploadFailedFiles(uploadFailedFiles);
             log.error("files upload fail, files:{}", MAPPER.writeValueAsString(uploadFailedFiles));
         }
 
-        return publishFailedVo;
+        return momentFailedVo;
     }
 
     /**

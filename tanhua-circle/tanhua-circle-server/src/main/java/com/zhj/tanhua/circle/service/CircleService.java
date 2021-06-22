@@ -2,15 +2,17 @@ package com.zhj.tanhua.circle.service;
 
 import com.aliyun.oss.OSS;
 import com.zhj.tanhua.circle.api.CircleApi;
-import com.zhj.tanhua.circle.pojo.dto.PublishDto;
+import com.zhj.tanhua.circle.pojo.dto.MomentDto;
 import com.zhj.tanhua.circle.pojo.po.Album;
 import com.zhj.tanhua.circle.pojo.po.Feed;
 import com.zhj.tanhua.circle.pojo.po.Friend;
-import com.zhj.tanhua.circle.pojo.po.Publish;
+import com.zhj.tanhua.circle.pojo.po.Moment;
 import com.zhj.tanhua.circle.pojo.to.FeedTo;
 import com.zhj.tanhua.common.enums.FileTypeEnum;
 import com.zhj.tanhua.common.enums.ImageTypeEnum;
 import com.zhj.tanhua.common.enums.VideoTypeEnum;
+import com.zhj.tanhua.common.exception.NotFoundException;
+import com.zhj.tanhua.common.exception.UpdateRepeatException;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.UploadFileResult;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -54,33 +57,33 @@ public class CircleService implements CircleApi {
     private String urlPrefix;
 
     /**
-     * 保存用户发布动态
+     * 保存用户动态
      *
-     * @param publishDto 发布内容
+     * @param momentDto 动态内容
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void savePublish(PublishDto publishDto) {
+    public void saveMoment(MomentDto momentDto) {
 
-        // 写入发布表中
-        Publish publish = new Publish();
-        BeanUtils.copyProperties(publishDto, publish);
-        publish.setCreated(System.currentTimeMillis());
-        mongoTemplate.save(publishDto);
+        // 写入动态表中
+        Moment moment = new Moment();
+        BeanUtils.copyProperties(momentDto, moment);
+        moment.setCreated(System.currentTimeMillis());
+        mongoTemplate.save(momentDto);
 
-        // 写入自己的相册表表中
+        // 写入相册表表中
         Album album = new Album();
-        album.setPublishId(publish.getId());
+        album.setMomentId(moment.getId());
         album.setCreated(System.currentTimeMillis());
-        mongoTemplate.save(album, Album.TABLE_NAME_PREFIX + publish.getUserId());
+        mongoTemplate.save(album, Album.TABLE_NAME_PREFIX + moment.getUserId());
 
-        // 查询当前用户好友，将动态数据写入到好友的动态表中
-        Query query = Query.query(Criteria.where("userId").is(publish.getUserId()));
+        // 查询当前用户好友，将动态数据写入到好友的好友动态表中
+        Query query = Query.query(Criteria.where("userId").is(moment.getUserId()));
         List<Friend> friends = mongoTemplate.find(query, Friend.class);
         for (Friend friend : friends) {
             Feed feed = new Feed();
-            feed.setUserId(publish.getUserId());
-            feed.setPublishId(publish.getId());
+            feed.setUserId(moment.getUserId());
+            feed.setMomentId(moment.getId());
             feed.setCreated(System.currentTimeMillis());
             mongoTemplate.save(feed, Feed.TABLE_NAME_PREFIX + friend.getFriendId());
         }
@@ -119,16 +122,16 @@ public class CircleService implements CircleApi {
         for (Feed feed : feeds) {
             FeedTo feedTo = new FeedTo();
             BeanUtils.copyProperties(feed, feedTo);
-            feedMap.put(feed.getPublishId(), feedTo);
+            feedMap.put(feed.getMomentId(), feedTo);
         }
 
         // 查询动态信息
         Query queryPublish = Query.query(Criteria.where("id").in(feedMap.keySet()))
                 .with(Sort.by(Sort.Order.desc("created")));
-        List<Publish> publishList = mongoTemplate.find(queryPublish, Publish.class);
-        for (Publish publish : publishList) {
-            BeanUtils.copyProperties(publish, feedMap.get(publish.getId()));
-            feedMap.get(publish.getId()).setPublishId(publish.getId().toHexString());
+        List<Moment> momentList = mongoTemplate.find(queryPublish, Moment.class);
+        for (Moment moment : momentList) {
+            BeanUtils.copyProperties(moment, feedMap.get(moment.getId()));
+            feedMap.get(moment.getId()).setPublishId(moment.getId().toHexString());
         }
 
         return PageResult.<FeedTo>builder().total(total).pageNum((long) pageNum).pageSize((long) pageSize)
@@ -198,5 +201,58 @@ public class CircleService implements CircleApi {
         }
 
         return results;
+    }
+
+    /**
+     * 点赞或取消点赞
+     *
+     * @param userId 用户ID
+     * @param momentId 动态ID
+     * @param isLike true为点赞，false为取消点赞
+     */
+    @Override
+    public void likeOrUnlike(Long userId, String momentId, Boolean isLike) {
+
+        String tableName = Feed.TABLE_NAME_PREFIX + userId;
+        Feed feed = mongoTemplate.findOne(Query.query(Criteria.where("momentId").is(momentId)), Feed.class, tableName);
+
+        // 好友动态表中没找到
+        if (null == feed) {
+            tableName = Feed.RECOMMEND_TABLE_NAME;
+            feed = mongoTemplate.findOne(Query.query(Criteria.where("momentId").is(momentId)), Feed.class, tableName);
+        }
+        // 推荐动态表中没找到
+        if (null == feed) {
+            throw new NotFoundException("momentId: " + momentId + ", not found");
+        }
+
+        // 点赞
+        if (isLike) {
+            // 已点赞
+            if (feed.getHasLike()) {
+                throw new UpdateRepeatException("feed update repeat, hasLike is true");
+            }
+            // 更新点赞
+            mongoTemplate.updateFirst(Query.query(Criteria.where("momentId").is(momentId)),
+                    Update.update("hasLike", true), Feed.class, tableName);
+            // 更新好友的相册表
+            mongoTemplate.updateFirst(Query.query(Criteria.where("momentId").is(feed.getMomentId())),
+                    new Update().inc("likeNum", 1).push("likeUsers", userId), Album.class,
+                    Album.TABLE_NAME_PREFIX + feed.getUserId());
+
+        // 取消点赞
+        } else {
+            // 已取消点赞
+            if (!feed.getHasLike()) {
+                throw new UpdateRepeatException("feed update repeat, hasLike is false");
+            }
+            // 更新点赞
+            mongoTemplate.updateFirst(Query.query(Criteria.where("momentId").is(momentId)),
+                    Update.update("hasLike", false), Feed.class, tableName);
+            // 更新好友的相册表
+            mongoTemplate.updateFirst(Query.query(Criteria.where("momentId").is(feed.getMomentId())),
+                    new Update().inc("likeNum", -1).pull("likeUsers", userId), Album.class,
+                    Album.TABLE_NAME_PREFIX + feed.getUserId());
+        }
     }
 }

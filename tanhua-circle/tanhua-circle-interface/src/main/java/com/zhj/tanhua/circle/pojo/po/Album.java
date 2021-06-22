@@ -6,10 +6,9 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
- * 相册表，用于存储自己发布的动态，每个用户存储一张表
+ * 相册表，用于存储自己的动态，每个用户存储一张表
  * 表名: circle_album_{userId}
  *
  * @author huanjie.zhuang
@@ -27,9 +26,9 @@ public class Album implements Serializable {
     @Id
     private ObjectId id;
     /**
-     * 发布ID
+     * 动态ID
      */
-    private ObjectId publishId;
+    private ObjectId momentId;
     /**
      * 点赞数
      */
@@ -37,7 +36,7 @@ public class Album implements Serializable {
     /**
      * 点赞用户
      */
-    private List<Long> likeUsers;
+    private Long[] likeUsers;
     /**
      * 评论数
      */
@@ -45,7 +44,7 @@ public class Album implements Serializable {
     /**
      * 评论
      */
-    private List<ObjectId> comments;
+    private ObjectId[] comments;
     /**
      * 发布时间
      */

@@ -23,9 +23,9 @@ public class Comment implements Serializable {
     @Id
     private ObjectId id;
     /**
-     * 发布ID
+     * 动态ID
      */
-    private ObjectId publishId;
+    private ObjectId momentId;
     /**
      * 评论人ID
      */

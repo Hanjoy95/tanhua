@@ -15,7 +15,7 @@ import java.util.List;
  */
 @Data
 @ApiModel("发布动态失败结果")
-public class PublishFailedVo {
+public class MomentFailedVo {
 
     @ApiModelProperty(value = "重新发布ID")
     private String rePublishId;
