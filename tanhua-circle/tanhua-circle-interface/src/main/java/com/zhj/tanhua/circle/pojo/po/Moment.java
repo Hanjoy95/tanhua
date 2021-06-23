@@ -50,6 +50,14 @@ public class Moment implements Serializable {
      */
     private List<Long> notSeeList;
     /**
+     * 点赞数
+     */
+    private Long likeNum;
+    /**
+     * 点赞用户
+     */
+    private List<Long> likeUsers;
+    /**
      * 经度
      */
     private String longitude;
@@ -64,5 +72,6 @@ public class Moment implements Serializable {
     /**
      * 发布时间
      */
+    @Indexed
     private Long created;
 }

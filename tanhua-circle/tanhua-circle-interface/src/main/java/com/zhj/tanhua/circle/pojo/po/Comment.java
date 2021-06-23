@@ -3,6 +3,7 @@ package com.zhj.tanhua.circle.pojo.po;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
@@ -25,6 +26,7 @@ public class Comment implements Serializable {
     /**
      * 动态ID
      */
+    @Indexed
     private ObjectId momentId;
     /**
      * 评论人ID
@@ -35,12 +37,9 @@ public class Comment implements Serializable {
      */
     private String content;
     /**
-     * 是否为父节点
-     */
-    private Boolean isParent = false;
-    /**
      * 父节点ID
      */
+    @Indexed
     private ObjectId parentId;
     /**
      * 发表时间

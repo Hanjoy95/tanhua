@@ -30,22 +30,6 @@ public class Album implements Serializable {
      */
     private ObjectId momentId;
     /**
-     * 点赞数
-     */
-    private Integer likeNum;
-    /**
-     * 点赞用户
-     */
-    private Long[] likeUsers;
-    /**
-     * 评论数
-     */
-    private Integer commentNum;
-    /**
-     * 评论
-     */
-    private ObjectId[] comments;
-    /**
      * 发布时间
      */
     private Long created;

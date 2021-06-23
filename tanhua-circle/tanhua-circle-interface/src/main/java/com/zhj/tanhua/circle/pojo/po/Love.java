@@ -27,7 +27,7 @@ public class Love implements Serializable {
     @Indexed
     private Long loveUserId;
     /**
-     * 发布内容
+     * 被喜欢的用户ID
      */
     @Indexed
     private Long beLovedUserId;

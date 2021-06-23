@@ -30,6 +30,7 @@ public class Feed implements Serializable {
     /**
      * 动态ID
      */
+    @Indexed
     private ObjectId momentId;
     /**
      * 好友ID

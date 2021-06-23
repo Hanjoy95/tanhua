@@ -12,7 +12,8 @@ import java.util.List;
 @Data
 public class FeedTo implements Serializable {
 
-    private String publishId;
+    private String feedId;
+    private String momentId;
     private Long userId;
     private String text;
     private List<String> medias;
@@ -21,8 +22,8 @@ public class FeedTo implements Serializable {
     private String location;
     private Long created;
 
-    private Integer likeNum;
-    private Integer commentNum;
+    private Long likeNum;
+    private Long commentNum;
     private Boolean hasLike;
     private Boolean hasComment;
 }

@@ -3,10 +3,8 @@ package com.zhj.tanhua.circle.service;
 import com.aliyun.oss.OSS;
 import com.zhj.tanhua.circle.api.CircleApi;
 import com.zhj.tanhua.circle.pojo.dto.MomentDto;
-import com.zhj.tanhua.circle.pojo.po.Album;
-import com.zhj.tanhua.circle.pojo.po.Feed;
-import com.zhj.tanhua.circle.pojo.po.Friend;
-import com.zhj.tanhua.circle.pojo.po.Moment;
+import com.zhj.tanhua.circle.pojo.po.*;
+import com.zhj.tanhua.circle.pojo.to.CommentTo;
 import com.zhj.tanhua.circle.pojo.to.FeedTo;
 import com.zhj.tanhua.common.enums.FileTypeEnum;
 import com.zhj.tanhua.common.enums.ImageTypeEnum;
@@ -57,13 +55,14 @@ public class CircleService implements CircleApi {
     private String urlPrefix;
 
     /**
-     * 保存用户动态
+     * 添加用户动态
      *
      * @param momentDto 动态内容
+     * @return String 动态ID
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void saveMoment(MomentDto momentDto) {
+    public String addMoment(MomentDto momentDto) {
 
         // 写入动态表中
         Moment moment = new Moment();
@@ -87,6 +86,8 @@ public class CircleService implements CircleApi {
             feed.setCreated(System.currentTimeMillis());
             mongoTemplate.save(feed, Feed.TABLE_NAME_PREFIX + friend.getFriendId());
         }
+
+        return moment.getId().toHexString();
     }
 
     /**
@@ -122,6 +123,7 @@ public class CircleService implements CircleApi {
         for (Feed feed : feeds) {
             FeedTo feedTo = new FeedTo();
             BeanUtils.copyProperties(feed, feedTo);
+            feedTo.setFeedId(feed.getId().toHexString());
             feedMap.put(feed.getMomentId(), feedTo);
         }
 
@@ -131,7 +133,10 @@ public class CircleService implements CircleApi {
         List<Moment> momentList = mongoTemplate.find(queryPublish, Moment.class);
         for (Moment moment : momentList) {
             BeanUtils.copyProperties(moment, feedMap.get(moment.getId()));
-            feedMap.get(moment.getId()).setPublishId(moment.getId().toHexString());
+            FeedTo feedTo = feedMap.get(moment.getId());
+            feedTo.setMomentId(moment.getId().toHexString());
+            feedTo.setCommentNum(mongoTemplate.count(new Query(Criteria.where("momentId")
+                    .is(moment.getId())), Comment.class));
         }
 
         return PageResult.<FeedTo>builder().total(total).pageNum((long) pageNum).pageSize((long) pageSize)
@@ -214,12 +219,14 @@ public class CircleService implements CircleApi {
     public void likeOrUnlike(Long userId, String momentId, Boolean isLike) {
 
         String tableName = Feed.TABLE_NAME_PREFIX + userId;
-        Feed feed = mongoTemplate.findOne(Query.query(Criteria.where("momentId").is(momentId)), Feed.class, tableName);
+        Feed feed = mongoTemplate.findOne(Query.query(Criteria.where("momentId").is(new ObjectId(momentId))),
+                Feed.class, tableName);
 
         // 好友动态表中没找到
         if (null == feed) {
             tableName = Feed.RECOMMEND_TABLE_NAME;
-            feed = mongoTemplate.findOne(Query.query(Criteria.where("momentId").is(momentId)), Feed.class, tableName);
+            feed = mongoTemplate.findOne(Query.query(Criteria.where("momentId").is(new ObjectId(momentId))),
+                    Feed.class, tableName);
         }
         // 推荐动态表中没找到
         if (null == feed) {
@@ -233,12 +240,11 @@ public class CircleService implements CircleApi {
                 throw new UpdateRepeatException("feed update repeat, hasLike is true");
             }
             // 更新点赞
-            mongoTemplate.updateFirst(Query.query(Criteria.where("momentId").is(momentId)),
+            mongoTemplate.updateFirst(Query.query(Criteria.where("momentId").is(new ObjectId(momentId))),
                     Update.update("hasLike", true), Feed.class, tableName);
             // 更新好友的相册表
-            mongoTemplate.updateFirst(Query.query(Criteria.where("momentId").is(feed.getMomentId())),
-                    new Update().inc("likeNum", 1).push("likeUsers", userId), Album.class,
-                    Album.TABLE_NAME_PREFIX + feed.getUserId());
+            mongoTemplate.updateFirst(Query.query(Criteria.where("id").is(feed.getMomentId())),
+                    new Update().inc("likeNum", 1).push("likeUsers", userId), Moment.class);
 
         // 取消点赞
         } else {
@@ -247,12 +253,94 @@ public class CircleService implements CircleApi {
                 throw new UpdateRepeatException("feed update repeat, hasLike is false");
             }
             // 更新点赞
-            mongoTemplate.updateFirst(Query.query(Criteria.where("momentId").is(momentId)),
+            mongoTemplate.updateFirst(Query.query(Criteria.where("momentId").is(new ObjectId(momentId))),
                     Update.update("hasLike", false), Feed.class, tableName);
             // 更新好友的相册表
-            mongoTemplate.updateFirst(Query.query(Criteria.where("momentId").is(feed.getMomentId())),
-                    new Update().inc("likeNum", -1).pull("likeUsers", userId), Album.class,
-                    Album.TABLE_NAME_PREFIX + feed.getUserId());
+            mongoTemplate.updateFirst(Query.query(Criteria.where("id").is(feed.getMomentId())),
+                    new Update().inc("likeNum", -1).pull("likeUsers", userId), Moment.class);
         }
+    }
+
+    /**
+     * 评论某个动态或评论
+     *
+     * @param userId 用户ID
+     * @param momentId 动态ID
+     * @param commentId 被评论的评论ID
+     * @param content 评论内容
+     * @return String 评论ID
+     */
+    @Override
+    public String addComment(Long userId, String momentId, String commentId, String content) {
+        Comment comment = new Comment();
+        comment.setUserId(userId);
+        comment.setMomentId(new ObjectId(momentId));
+        comment.setContent(content);
+        // commentId不为空则是评论某个评论，否则是评论某个动态
+        if (StringUtils.isNotBlank(commentId)) {
+            comment.setParentId(new ObjectId(commentId));
+        }
+        mongoTemplate.save(comment);
+
+        return comment.getId().toHexString();
+    }
+
+    /**
+     * 删除评论
+     *
+     * @param commentId 评论ID
+     * @return List<String>
+     */
+    @Override
+    public List<String> deleteComment(String commentId) {
+        List<String> deleteCommentIds = new ArrayList<>();
+        deleteRecursion(commentId, deleteCommentIds);
+        mongoTemplate.remove(new Query(Criteria.where("id").in(deleteCommentIds)), Comment.class);
+
+        return deleteCommentIds;
+    }
+
+    /**
+     * 递归的添加要删除的评论
+     */
+    private void deleteRecursion(String commentId, List<String> deleteCommentIds) {
+        deleteCommentIds.add(commentId);
+        mongoTemplate.find(new Query(Criteria.where("parentId").is(new ObjectId(commentId))), Comment.class)
+                .forEach(comment -> deleteRecursion(comment.getId().toHexString(), deleteCommentIds));
+    }
+
+    /**
+     * 查询评论
+     *
+     * @param momentId 动态ID
+     * @param commentId 评论ID
+     * @param pageNum 当前页
+     * @param pageSize 页大小
+     * @return PageResult<CommentTo>
+     */
+    @Override
+    public PageResult<CommentTo> queryComment(String momentId, String commentId, Integer pageNum, Integer pageSize) {
+
+        return null;
+    }
+
+    @Override
+    public String addLove(Long loveUserId, Long belovedUserId) {
+        return null;
+    }
+
+    @Override
+    public String deleteLove(Long loveUserId, Long belovedUserId) {
+        return null;
+    }
+
+    @Override
+    public List<String> queryLove(Long userId) {
+        return null;
+    }
+
+    @Override
+    public List<String> queryBeLoved(Long userId) {
+        return null;
     }
 }
