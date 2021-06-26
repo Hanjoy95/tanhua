@@ -2,6 +2,7 @@ package com.zhj.tanhua.circle.service;
 
 import com.aliyun.oss.OSS;
 import com.zhj.tanhua.circle.api.CircleApi;
+import com.zhj.tanhua.circle.enums.SeeTypeEnum;
 import com.zhj.tanhua.circle.pojo.dto.MomentDto;
 import com.zhj.tanhua.circle.pojo.po.*;
 import com.zhj.tanhua.circle.pojo.to.AlbumTo;
@@ -77,15 +78,27 @@ public class CircleService implements CircleApi {
         album.setCreated(System.currentTimeMillis());
         mongoTemplate.save(album, Album.TABLE_NAME_PREFIX + moment.getUserId());
 
-        // 查询当前用户好友，将动态数据写入到好友的好友动态表中
-        Query query = Query.query(Criteria.where("userId").is(moment.getUserId()));
-        List<Friend> friends = mongoTemplate.find(query, Friend.class);
-        for (Friend friend : friends) {
-            Feed feed = new Feed();
-            feed.setUserId(moment.getUserId());
-            feed.setMomentId(moment.getId());
-            feed.setCreated(System.currentTimeMillis());
-            mongoTemplate.save(feed, Feed.TABLE_NAME_PREFIX + friend.getFriendId());
+        if (!SeeTypeEnum.PRIVATE.equals(momentDto.getSeeType())) {
+            // 查询当前用户好友，将动态数据写入到好友的好友动态表中
+            Query query = Query.query(Criteria.where("userId").is(moment.getUserId()));
+            List<Friend> friends = mongoTemplate.find(query, Friend.class);
+
+            Set<Long> userIds = friends.stream().map(Friend::getUserId).collect(Collectors.toSet());
+            if (SeeTypeEnum.WHO_CAN_SEE.equals(momentDto.getSeeType())) {
+                friends = friends.stream().filter(friend -> userIds.contains(friend.getFriendId()))
+                        .collect(Collectors.toList());
+            } else if (SeeTypeEnum.WHO_CANNOT_SEE.equals(momentDto.getSeeType())) {
+                friends = friends.stream().filter(friend -> !userIds.contains(friend.getFriendId()))
+                        .collect(Collectors.toList());
+            }
+
+            for (Friend friend : friends) {
+                Feed feed = new Feed();
+                feed.setUserId(moment.getUserId());
+                feed.setMomentId(moment.getId());
+                feed.setCreated(System.currentTimeMillis());
+                mongoTemplate.save(feed, Feed.TABLE_NAME_PREFIX + friend.getFriendId());
+            }
         }
 
         return moment.getId().toHexString();
