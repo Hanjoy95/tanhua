@@ -68,6 +68,16 @@ public class UserService {
     }
 
     /**
+     * 修改密码
+     *
+     * @param oldPassword 旧密码
+     * @param newPassword 新密码
+     */
+    public void modifyPassword(String oldPassword, String newPassword) {
+        userApi.modifyPassword(UserThreadLocal.get().getId(), oldPassword, newPassword);
+    }
+
+    /**
      * 上传头像
      *
      * @param file 用户头像图片文件

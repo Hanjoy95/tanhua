@@ -37,7 +37,7 @@ public class UserController {
      * @return ResponseResult<UserTo>
      */
     @ApiOperation("登录")
-    @GetMapping("login")
+    @GetMapping("/login")
     public ResponseResult<UserTo> login(@RequestParam("phone") String phone,
                                         @RequestParam("checkCode") String checkCode){
         try {
@@ -54,7 +54,7 @@ public class UserController {
      * @return ResponseResult<String>
      */
     @ApiOperation("发送验证码")
-    @GetMapping("sentCheckCode")
+    @GetMapping("/sentCheckCode")
     public ResponseResult<String> sentCheckCode(@RequestParam("phone") String phone) {
 
         try {
@@ -71,7 +71,7 @@ public class UserController {
      * @return ResponseResult<User>
      */
     @ApiOperation("根据token查询用户")
-    @GetMapping("token/{token}")
+    @GetMapping("/token/{token}")
     public ResponseResult<User> getUserByToken(@PathVariable("token") String token) {
 
         try {
@@ -88,11 +88,30 @@ public class UserController {
      * @return ResponseResult<Void>
      */
     @ApiOperation("保存信息")
-    @PostMapping("saveInfo")
+    @PostMapping("/saveInfo")
     @Auth
     public ResponseResult<Void> saveUserInfo(@RequestBody UserInfoDto userInfoDto) {
         try {
             userService.saveUserInfo(userInfoDto);
+        } catch (BaseException e) {
+            return ResponseResult.fail(e.getStatus(), e.getMessage());
+        }
+
+        return ResponseResult.ok();
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param oldPassword 旧密码
+     * @param newPassword 新密码
+     */
+    @ApiOperation("修改密码")
+    @GetMapping("/password/modify")
+    @Auth
+    public ResponseResult<Void> modifyPassword(String oldPassword, String newPassword) {
+        try {
+            userService.modifyPassword(oldPassword, newPassword);
         } catch (BaseException e) {
             return ResponseResult.fail(e.getStatus(), e.getMessage());
         }
@@ -107,7 +126,7 @@ public class UserController {
      * @return ResponseResult<Object>
      */
     @ApiOperation("保存头像")
-    @PostMapping("saveAvatar")
+    @PostMapping("/saveAvatar")
     @Auth
     public ResponseResult<Void> saveAvatar(@RequestParam("avatar") MultipartFile file) {
         try {
@@ -125,7 +144,7 @@ public class UserController {
      * @return ResponseResult<UserInfoDto>
      */
     @ApiOperation("获取详细信息")
-    @GetMapping("info")
+    @GetMapping("/info")
     @Auth
     public ResponseResult<UserInfoTo> getUserInfo() {
 

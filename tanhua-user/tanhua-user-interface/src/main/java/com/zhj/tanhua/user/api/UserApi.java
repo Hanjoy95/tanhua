@@ -9,6 +9,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 /**
+ * 用户模块的dubbo接口
+ *
  * @author huanjie.zhuang
  * @date 2021/6/12
  */
@@ -45,6 +47,15 @@ public interface UserApi {
      * @param userInfoDto 用户信息
      */
     void saveUserInfo(UserInfoDto userInfoDto);
+
+    /**
+     * 修改密码
+     *
+     * @param userId 用户ID
+     * @param oldPassword 旧密码
+     * @param newPassword 新密码
+     */
+    void modifyPassword(Long userId, String oldPassword, String newPassword);
 
     /**
      * 上传头像
