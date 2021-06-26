@@ -9,8 +9,8 @@ import com.zhj.tanhua.circle.pojo.to.AlbumTo;
 import com.zhj.tanhua.circle.pojo.to.FeedTo;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.UploadFileResult;
-import com.zhj.tanhua.server.pojo.vo.circle.FeedVo;
-import com.zhj.tanhua.server.pojo.vo.circle.MomentFailedVo;
+import com.zhj.tanhua.server.pojo.bo.circle.FeedBo;
+import com.zhj.tanhua.server.pojo.bo.circle.MomentBo;
 import com.zhj.tanhua.server.pojo.vo.circle.MomentVo;
 import com.zhj.tanhua.server.web.threadlocal.UserThreadLocal;
 import com.zhj.tanhua.user.pojo.po.User;
@@ -54,7 +54,7 @@ public class CircleService {
      * @return 返回发布动态结果
      */
     @SneakyThrows
-    public MomentFailedVo addMoment(MomentVo momentVo) {
+    public MomentBo addMoment(MomentVo momentVo) {
 
         User user = UserThreadLocal.get();
 
@@ -83,23 +83,23 @@ public class CircleService {
             }
         }
 
-        MomentFailedVo momentFailedVo = new MomentFailedVo();
+        MomentBo momentBo = new MomentBo();
         if (CollectionUtils.isEmpty(uploadFailedFiles)) {
             momentDto.setMedias(filesHasUpload);
-            momentFailedVo.setMomentId(circleApi.addMoment(momentDto));
+            momentBo.setMomentId(circleApi.addMoment(momentDto));
             log.info("files upload success");
-            return momentFailedVo;
+            return momentBo;
         } else {
             String rePublishId = UUID.randomUUID().toString();
             redisTemplate.opsForValue().set("FILES_HAS_UPLOAD_" + rePublishId,
                                             MAPPER.writeValueAsString(filesHasUpload),
                                             Duration.ofHours(1));
-            momentFailedVo.setRePublishId(rePublishId);
-            momentFailedVo.setUploadFailedFiles(uploadFailedFiles);
+            momentBo.setRePublishId(rePublishId);
+            momentBo.setUploadFailedFiles(uploadFailedFiles);
             log.error("files upload fail, files:{}", MAPPER.writeValueAsString(uploadFailedFiles));
         }
 
-        return momentFailedVo;
+        return momentBo;
     }
 
     /**
@@ -120,7 +120,7 @@ public class CircleService {
      * @param pageSize 页大小
      * @return 返回好友动态分页结果
      */
-    public PageResult<FeedVo> queryFeeds(Integer pageNum, Integer pageSize, Boolean isQueryRecommend) {
+    public PageResult<FeedBo> queryFeeds(Integer pageNum, Integer pageSize, Boolean isQueryRecommend) {
 
         PageResult<FeedTo> pageResult = circleApi.queryFeeds(
                 isQueryRecommend ? null : UserThreadLocal.get().getId(), pageNum, pageSize);
@@ -128,33 +128,33 @@ public class CircleService {
         // 没有查询到好友或推荐动态
         if (null == pageResult.getData()) {
             log.info("not found the friend's feed, userId:{}", UserThreadLocal.get().getId());
-            return PageResult.<FeedVo>builder().total(0L).pageNum((long) pageNum)
+            return PageResult.<FeedBo>builder().total(0L).pageNum((long) pageNum)
                     .pageSize((long) pageSize).hasNext(false).data(null).build();
         }
 
         // 完善发布动态的信息
         List<FeedTo> feedTos = pageResult.getData();
-        Map<Long, List<FeedVo>> feedMap = new HashMap<>();
-        List<FeedVo> result = new ArrayList<>();
+        Map<Long, List<FeedBo>> feedMap = new HashMap<>();
+        List<FeedBo> result = new ArrayList<>();
         for (FeedTo feedTo : feedTos) {
-            FeedVo feedVo = new FeedVo();
-            BeanUtils.copyProperties(feedTo, feedVo);
-            List<FeedVo> feedVos = feedMap.getOrDefault(feedTo.getUserId(), new ArrayList<>());
-            feedVos.add(feedVo);
-            feedMap.put(feedTo.getUserId(), feedVos);
-            result.add(feedVo);
+            FeedBo feedBo = new FeedBo();
+            BeanUtils.copyProperties(feedTo, feedBo);
+            List<FeedBo> feedBos = feedMap.getOrDefault(feedTo.getUserId(), new ArrayList<>());
+            feedBos.add(feedBo);
+            feedMap.put(feedTo.getUserId(), feedBos);
+            result.add(feedBo);
         }
 
         // 完善发布动态的用户信息
         List<UserInfoTo> userInfos = userService.getUserInfos(
                 new ArrayList<>(feedMap.keySet()), null,null,null);
         for (UserInfoTo userInfo : userInfos) {
-            for (FeedVo feed : feedMap.get(userInfo.getUserId())) {
+            for (FeedBo feed : feedMap.get(userInfo.getUserId())) {
                 BeanUtils.copyProperties(userInfo, feed);
             }
         }
 
-        return PageResult.<FeedVo>builder().total(pageResult.getTotal()).pageNum(pageResult.getPageNum())
+        return PageResult.<FeedBo>builder().total(pageResult.getTotal()).pageNum(pageResult.getPageNum())
                 .pageSize(pageResult.getPageSize()).hasNext(pageResult.getHasNext()).data(result).build();
     }
 

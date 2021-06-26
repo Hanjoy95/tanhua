@@ -1,4 +1,4 @@
-package com.zhj.tanhua.server.pojo.vo.circle;
+package com.zhj.tanhua.server.pojo.bo.circle;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.zhj.tanhua.common.result.UploadFileResult;
@@ -9,14 +9,12 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 发布动态失败时会返回
- *
  * @author huanjie.zhuang
  * @date 2021/6/19
  */
 @Data
-@ApiModel("发布动态失败结果")
-public class MomentFailedVo {
+@ApiModel("发布动态结果")
+public class MomentBo {
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @ApiModelProperty(value = "动态ID")

@@ -1,4 +1,4 @@
-package com.zhj.tanhua.server.pojo.vo.recommend;
+package com.zhj.tanhua.server.pojo.bo.recommend;
 
 import com.zhj.tanhua.user.enums.SexEnum;
 import io.swagger.annotations.ApiModel;
@@ -13,7 +13,7 @@ import java.util.List;
  */
 @ApiModel("今日佳人")
 @Data
-public class TodayBestVo {
+public class TodayBestBo {
 
     @ApiModelProperty(value = "用户ID")
     private Long userId;

@@ -5,8 +5,8 @@ import com.zhj.tanhua.circle.pojo.to.AlbumTo;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.ResponseResult;
 import com.zhj.tanhua.server.pojo.vo.circle.CommentVo;
-import com.zhj.tanhua.server.pojo.vo.circle.FeedVo;
-import com.zhj.tanhua.server.pojo.vo.circle.MomentFailedVo;
+import com.zhj.tanhua.server.pojo.bo.circle.FeedBo;
+import com.zhj.tanhua.server.pojo.bo.circle.MomentBo;
 import com.zhj.tanhua.server.pojo.vo.circle.MomentVo;
 import com.zhj.tanhua.server.service.CircleService;
 import com.zhj.tanhua.server.web.annotation.Auth;
@@ -41,10 +41,9 @@ public class CircleController {
     @Auth
     @ApiOperation(value = "发布动态")
     @PostMapping("/moment/publish")
-    public ResponseResult<MomentFailedVo> publishMoment(@RequestBody MomentVo momentVo) {
+    public ResponseResult<MomentBo> publishMoment(@RequestBody MomentVo momentVo) {
 
-        MomentFailedVo result = circleService.addMoment(momentVo);
-
+        MomentBo result = circleService.addMoment(momentVo);
         return null == result.getMomentId() ? ResponseResult.ok(result) : ResponseResult.fail(result);
     }
 
@@ -75,7 +74,7 @@ public class CircleController {
     @Auth
     @ApiOperation(value = "查询好友或推荐动态")
     @GetMapping("/friend/query")
-    public ResponseResult<PageResult<FeedVo>> queryFeeds(
+    public ResponseResult<PageResult<FeedBo>> queryFeeds(
             @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
             @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
             @RequestParam("isQueryRecommend") Boolean isQueryRecommend) {
