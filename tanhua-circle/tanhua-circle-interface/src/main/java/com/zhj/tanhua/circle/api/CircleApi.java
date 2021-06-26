@@ -1,7 +1,8 @@
 package com.zhj.tanhua.circle.api;
 
 import com.zhj.tanhua.circle.pojo.dto.MomentDto;
-import com.zhj.tanhua.circle.pojo.to.CommentTo;
+import com.zhj.tanhua.circle.pojo.po.Comment;
+import com.zhj.tanhua.circle.pojo.to.AlbumTo;
 import com.zhj.tanhua.circle.pojo.to.FeedTo;
 import com.zhj.tanhua.common.enums.FileTypeEnum;
 import com.zhj.tanhua.common.result.PageResult;
@@ -22,28 +23,38 @@ public interface CircleApi {
      * 添加用户动态
      *
      * @param momentDto 动态内容
-     * @return String 动态ID
+     * @return 返回动态ID
      */
     String addMoment(MomentDto momentDto);
-
-    /**
-     * 查询好友或推荐动态
-     *
-     * @param userId 用户ID
-     * @param pageNum 当前页
-     * @param pageSize 页大小
-     * @return PageResult<FeedTo>
-     */
-    PageResult<FeedTo> queryFeeds(Long userId, Integer pageNum, Integer pageSize);
 
     /**
      * 批量上传文件
      *
      * @param files 需要上传的文件
      * @param fileType 文件类型
-     * @return List<UploadFileResult>
+     * @return 返回上传文件结果列表
      */
     List<UploadFileResult> uploadFiles(List<MultipartFile> files, FileTypeEnum fileType);
+
+    /**
+     * 查询自己的相册
+     *
+     * @param userId 用户ID
+     * @param pageNum 当前页
+     * @param pageSize 页大小
+     * @return 返回相册的分页结果
+     */
+    PageResult<AlbumTo> queryAlbums(Long userId, Integer pageNum, Integer pageSize);
+
+    /**
+     * 查询好友或推荐动态
+     *
+     * @param userId 用户ID，null则为查询推荐动态
+     * @param pageNum 当前页
+     * @param pageSize 页大小
+     * @return 返回好友动态的分页结果
+     */
+    PageResult<FeedTo> queryFeeds(Long userId, Integer pageNum, Integer pageSize);
 
     /**
      * 点赞或取消点赞
@@ -61,7 +72,7 @@ public interface CircleApi {
      * @param momentId 动态ID
      * @param commentId 被评论的评论ID
      * @param content 评论内容
-     * @return String 评论ID
+     * @return 返回评论ID
      */
     String addComment(Long userId, String momentId, String commentId, String content);
 
@@ -69,7 +80,7 @@ public interface CircleApi {
      * 删除评论
      *
      * @param commentId 评论ID
-     * @return List<String>
+     * @return 返回被删除的评论ID列表
      */
     List<String> deleteComment(String commentId);
 
@@ -80,41 +91,35 @@ public interface CircleApi {
      * @param commentId 评论ID
      * @param pageNum 当前页
      * @param pageSize 页大小
-     * @return PageResult<CommentTo>
+     * @return 返回评论分页结果
      */
-    PageResult<CommentTo> queryComment(String momentId, String commentId, Integer pageNum, Integer pageSize);
+    PageResult<Comment> queryComment(String momentId, String commentId, Integer pageNum, Integer pageSize);
 
     /**
      * 喜欢某个用户
      *
      * @param loveUserId 用户ID
      * @param belovedUserId 评论ID
-     * @return String loveId
+     * @return 返回是否匹配成功
      */
-    String addLove(Long loveUserId, Long belovedUserId);
+    boolean addLove(Long loveUserId, Long belovedUserId);
 
     /**
      * 取消喜欢某个用户
      *
      * @param loveUserId 用户ID
      * @param belovedUserId 评论ID
-     * @return String loveId
      */
-    String deleteLove(Long loveUserId, Long belovedUserId);
+    void deleteLove(Long loveUserId, Long belovedUserId);
 
     /**
-     * 查询我喜欢的用户
+     * 查询我喜欢或喜欢我的用户
      *
      * @param userId 用户ID
-     * @return List<String> 用户ID列表
+     * @param isLove true为查询我喜欢的用户，false为查询喜欢我的用户
+     * @param pageNum 当前页
+     * @param pageSize 页大小
+     * @return 返回用户ID分页结果
      */
-    List<String> queryLove(Long userId);
-
-    /**
-     * 查询喜欢我的用户
-     *
-     * @param userId 用户ID
-     * @return List<String> 用户ID列表
-     */
-    List<String> queryBeLoved(Long userId);
+    PageResult<Long> queryLove(Long userId, Boolean isLove, Integer pageNum, Integer pageSize);
 }

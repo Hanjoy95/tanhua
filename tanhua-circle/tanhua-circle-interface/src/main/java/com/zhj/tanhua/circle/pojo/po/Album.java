@@ -3,6 +3,7 @@ package com.zhj.tanhua.circle.pojo.po;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
@@ -32,5 +33,6 @@ public class Album implements Serializable {
     /**
      * 发布时间
      */
+    @Indexed
     private Long created;
 }

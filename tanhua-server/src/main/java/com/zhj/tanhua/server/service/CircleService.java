@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zhj.tanhua.circle.api.CircleApi;
 import com.zhj.tanhua.circle.pojo.dto.MomentDto;
+import com.zhj.tanhua.circle.pojo.po.Comment;
+import com.zhj.tanhua.circle.pojo.to.AlbumTo;
 import com.zhj.tanhua.circle.pojo.to.FeedTo;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.UploadFileResult;
@@ -49,10 +51,10 @@ public class CircleService {
      * 发布动态
      *
      * @param momentVo 动态参数
-     * @return MomentFailedVo
+     * @return 返回发布动态结果
      */
     @SneakyThrows
-    public MomentFailedVo saveMoment(MomentVo momentVo) {
+    public MomentFailedVo addMoment(MomentVo momentVo) {
 
         User user = UserThreadLocal.get();
 
@@ -84,9 +86,9 @@ public class CircleService {
         MomentFailedVo momentFailedVo = new MomentFailedVo();
         if (CollectionUtils.isEmpty(uploadFailedFiles)) {
             momentDto.setMedias(filesHasUpload);
-            circleApi.saveMoment(momentDto);
+            momentFailedVo.setMomentId(circleApi.addMoment(momentDto));
             log.info("files upload success");
-            return null;
+            return momentFailedVo;
         } else {
             String rePublishId = UUID.randomUUID().toString();
             redisTemplate.opsForValue().set("FILES_HAS_UPLOAD_" + rePublishId,
@@ -101,15 +103,27 @@ public class CircleService {
     }
 
     /**
+     * 查询相册
+     *
+     * @param pageNum 当前页
+     * @param pageSize 页大小
+     * @return 返回相册的分页结果
+     */
+    public PageResult<AlbumTo> queryAlbums(Integer pageNum, Integer pageSize) {
+        return circleApi.queryAlbums(UserThreadLocal.get().getId(), pageNum, pageSize);
+    }
+
+    /**
      * 查询好友或推荐动态
      *
      * @param pageNum 当前页
      * @param pageSize 页大小
-     * @return PageResult<FeedVo>
+     * @return 返回好友动态分页结果
      */
-    public PageResult<FeedVo> queryFeeds(Integer pageNum, Integer pageSize) {
+    public PageResult<FeedVo> queryFeeds(Integer pageNum, Integer pageSize, Boolean isQueryRecommend) {
 
-        PageResult<FeedTo> pageResult = circleApi.queryFeeds(UserThreadLocal.get().getId(), pageNum, pageSize);
+        PageResult<FeedTo> pageResult = circleApi.queryFeeds(
+                isQueryRecommend ? null : UserThreadLocal.get().getId(), pageNum, pageSize);
 
         // 没有查询到好友或推荐动态
         if (null == pageResult.getData()) {
@@ -142,5 +156,91 @@ public class CircleService {
 
         return PageResult.<FeedVo>builder().total(pageResult.getTotal()).pageNum(pageResult.getPageNum())
                 .pageSize(pageResult.getPageSize()).hasNext(pageResult.getHasNext()).data(result).build();
+    }
+
+    /**
+     * 点赞或取消点赞
+     *
+     * @param momentId 动态ID
+     * @param isLike true为点赞，false为取消点赞
+     */
+    public void likeOrUnlike(String momentId, Boolean isLike) {
+        circleApi.likeOrUnlike(UserThreadLocal.get().getId(), momentId, isLike);
+    }
+
+    /**
+     * 评论某个动态或评论
+     *
+     * @param momentId 动态ID
+     * @param commentId 被评论的评论ID
+     * @param content 评论内容
+     * @return 返回评论ID
+     */
+    public String addComment(String momentId, String commentId, String content) {
+        return circleApi.addComment(UserThreadLocal.get().getId(), momentId, commentId, content);
+    }
+
+    /**
+     * 删除评论
+     *
+     * @param commentId 评论ID
+     * @return 返回被删除的评论ID列表
+     */
+    public List<String> deleteComment(String commentId) {
+        return circleApi.deleteComment(commentId);
+    }
+
+    /**
+     * 查询评论
+     *
+     * @param momentId 动态ID
+     * @param commentId 评论ID
+     * @param pageNum 当前页
+     * @param pageSize 页大小
+     * @return 返回评论分页结果
+     */
+    public PageResult<Comment> queryComment(String momentId, String commentId, Integer pageNum, Integer pageSize) {
+        return circleApi.queryComment(momentId, commentId, pageNum, pageSize);
+    }
+
+    /**
+     * 喜欢某个用户
+     *
+     * @param userId 喜欢的用户ID
+     * @return 匹配成功返回对方信息
+     */
+    public UserInfoTo addLove(Long userId) {
+
+        if (circleApi.addLove(UserThreadLocal.get().getId(), userId)) {
+            return userService.getUserInfo(userId);
+        }
+        return null;
+    }
+
+    /**
+     * 取消喜欢某个用户
+     *
+     * @param loveUserId 用户ID
+     * @param belovedUserId 评论ID
+     */
+    public void deleteLove(Long loveUserId, Long belovedUserId) {
+        circleApi.deleteLove(loveUserId, belovedUserId);
+    }
+
+    /**
+     * 查询我喜欢或喜欢我的用户
+     *
+     * @param pageNum 当前页
+     * @param pageSize 页大小
+     * @param isLove true为查询我喜欢的用户，false为查询喜欢我的用户
+     * @return 返回用户信息分页结果
+     */
+    public PageResult<UserInfoTo> queryLove(Integer pageNum, Integer pageSize, Boolean isLove) {
+
+        PageResult<Long> pageResult = circleApi.queryLove(UserThreadLocal.get().getId(), isLove, pageNum, pageSize);
+        List<UserInfoTo> userInfos = userService.getUserInfos(pageResult.getData(), null, null, null);
+
+        return PageResult.<UserInfoTo>builder().total(pageResult.getTotal()).pageNum(pageResult.getPageNum())
+                .pageSize(pageResult.getPageSize()).hasNext(pageResult.getHasNext()).data(userInfos).build();
     }
 }

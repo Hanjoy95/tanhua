@@ -18,6 +18,8 @@ import java.util.List;
 @ApiModel("好友或推荐动态")
 public class FeedVo {
 
+    @ApiModelProperty(value = "好友动态ID")
+    private String feedId;
     @ApiModelProperty(value = "发布ID")
     private String publishId;
     @ApiModelProperty(value = "文字动态")

@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 /**
- * 发布动态所需要前端传的参数
+ * 发布动态请求体
  *
  * @author huanjie.zhuang
  * @date 2021/6/18
