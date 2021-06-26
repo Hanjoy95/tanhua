@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * 用户模块的服务层
+ * 用户模块的dubbo接口实现
  *
  * @author huanjie.zhuang
  * @date 2021/6/12
@@ -241,6 +241,24 @@ public class UserService implements UserApi {
             userInfoDao.update(userInfo, Wrappers.<UserInfo>lambdaQuery()
                     .eq(UserInfo::getUserId, userInfoDto.getUserId()));
         }
+    }
+
+    /**
+     * 修改密码
+     *
+     * @param userId 用户ID
+     * @param oldPassword 旧密码
+     * @param newPassword 新密码
+     */
+    @Override
+    public void modifyPassword(Long userId, String oldPassword, String newPassword) {
+
+        User user = userDao.selectById(userId);
+        if (!user.getPassword().equals(DigestUtils.md5Hex(oldPassword))) {
+            throw new ParameterInvalidException("用户密码错误");
+        }
+        user.setPassword(DigestUtils.md5Hex(newPassword));
+        userDao.update(user, Wrappers.<User>lambdaUpdate().eq(User::getId, userId));
     }
 
     /**

@@ -3,6 +3,7 @@ package com.zhj.tanhua.server.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zhj.tanhua.circle.api.CircleApi;
+import com.zhj.tanhua.circle.enums.SeeTypeEnum;
 import com.zhj.tanhua.circle.pojo.dto.MomentDto;
 import com.zhj.tanhua.circle.pojo.po.Comment;
 import com.zhj.tanhua.circle.pojo.to.AlbumTo;
@@ -13,7 +14,6 @@ import com.zhj.tanhua.server.pojo.bo.circle.FeedBo;
 import com.zhj.tanhua.server.pojo.bo.circle.MomentBo;
 import com.zhj.tanhua.server.pojo.vo.circle.MomentVo;
 import com.zhj.tanhua.server.web.threadlocal.UserThreadLocal;
-import com.zhj.tanhua.user.pojo.po.User;
 import com.zhj.tanhua.user.pojo.to.UserInfoTo;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -56,12 +56,6 @@ public class CircleService {
     @SneakyThrows
     public MomentBo addMoment(MomentVo momentVo) {
 
-        User user = UserThreadLocal.get();
-
-        MomentDto momentDto = new MomentDto();
-        BeanUtils.copyProperties(momentVo, momentDto);
-        momentDto.setUserId(user.getId());
-
         // 文件上传
         List<UploadFileResult> results = circleApi.uploadFiles(momentVo.getMedias(), momentVo.getFileType());
 
@@ -85,11 +79,17 @@ public class CircleService {
 
         MomentBo momentBo = new MomentBo();
         if (CollectionUtils.isEmpty(uploadFailedFiles)) {
+            // 上传成功
+            MomentDto momentDto = new MomentDto();
+            BeanUtils.copyProperties(momentVo, momentDto);
+            momentDto.setUserId(UserThreadLocal.get().getId());
+            momentDto.setSeeType(SeeTypeEnum.getType(momentVo.getSeeType()));
             momentDto.setMedias(filesHasUpload);
             momentBo.setMomentId(circleApi.addMoment(momentDto));
             log.info("files upload success");
             return momentBo;
         } else {
+            // 上传失败
             String rePublishId = UUID.randomUUID().toString();
             redisTemplate.opsForValue().set("FILES_HAS_UPLOAD_" + rePublishId,
                                             MAPPER.writeValueAsString(filesHasUpload),
