@@ -12,12 +12,12 @@ import lombok.Data;
  * @date 2021/6/17
  */
 @Data
-@ApiModel("用户发布动态")
-public class PublishDto implements Serializable {
+@ApiModel("用户动态")
+public class MomentDto implements Serializable {
 
     @ApiModelProperty(value = "用户ID")
     private Long userId;
-    @ApiModelProperty(value = "发布内容")
+    @ApiModelProperty(value = "动态内容")
     private String text;
     @ApiModelProperty(value = "媒体数据，图片或小视频（url）", hidden = true)
     private List<String> medias;

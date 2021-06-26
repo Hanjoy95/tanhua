@@ -3,13 +3,13 @@ package com.zhj.tanhua.circle.pojo.po;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
- * 相册表，用于存储自己发布的动态，每个用户存储一张表
+ * 相册表，用于存储自己的动态，每个用户存储一张表
  * 表名: circle_album_{userId}
  *
  * @author huanjie.zhuang
@@ -27,27 +27,12 @@ public class Album implements Serializable {
     @Id
     private ObjectId id;
     /**
-     * 发布ID
+     * 动态ID
      */
-    private ObjectId publishId;
-    /**
-     * 点赞数
-     */
-    private Integer likeNum;
-    /**
-     * 点赞用户
-     */
-    private List<Long> likeUsers;
-    /**
-     * 评论数
-     */
-    private Integer commentNum;
-    /**
-     * 评论
-     */
-    private List<ObjectId> comments;
+    private ObjectId momentId;
     /**
      * 发布时间
      */
+    @Indexed
     private Long created;
 }

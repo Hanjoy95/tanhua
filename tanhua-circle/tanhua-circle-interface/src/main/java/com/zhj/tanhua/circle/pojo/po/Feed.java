@@ -9,8 +9,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.io.Serializable;
 
 /**
- * 动态表，用于存储好友发布的动态或推荐动态，每个用户存储一张表
- * 好友动态表表名: circle_album_{userId}, 推荐动态表表名: circle_album_recommend
+ * 好友动态表，用于存储好友或推荐动态，每个用户存储一张表
+ * 好友动态表表名: circle_feed_{userId}, 推荐动态表表名: circle_feed_recommend
  *
  * @author huanjie.zhuang
  * @date 2021/6/17
@@ -28,21 +28,14 @@ public class Feed implements Serializable {
     @Id
     private ObjectId id;
     /**
-     * 发布ID
+     * 动态ID
      */
-    private ObjectId publishId;
+    @Indexed
+    private ObjectId momentId;
     /**
      * 好友ID
      */
     private Long userId;
-    /**
-     * 点赞数
-     */
-    private Integer likeNum;
-    /**
-     * 评论数
-     */
-    private Integer commentNum;
     /**
      * 是否点赞
      */

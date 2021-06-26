@@ -1,4 +1,4 @@
-package com.zhj.tanhua.server.pojo.vo.circle;
+package com.zhj.tanhua.server.pojo.bo.circle;
 
 import com.zhj.tanhua.user.enums.SexEnum;
 import com.zhj.tanhua.user.enums.StatusEnum;
@@ -16,8 +16,10 @@ import java.util.List;
  */
 @Data
 @ApiModel("好友或推荐动态")
-public class FeedVo {
+public class FeedBo {
 
+    @ApiModelProperty(value = "好友动态ID")
+    private String feedId;
     @ApiModelProperty(value = "发布ID")
     private String publishId;
     @ApiModelProperty(value = "文字动态")

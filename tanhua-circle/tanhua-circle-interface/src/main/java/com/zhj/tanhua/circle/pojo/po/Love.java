@@ -9,14 +9,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.io.Serializable;
 
 /**
- * 评论表
- *
  * @author huanjie.zhuang
- * @date 2021/6/17
+ * @date 2021/6/22
  */
 @Data
-@Document(collection = "circle_comment")
-public class Comment implements Serializable {
+@Document(collection = "circle_love")
+public class Love implements Serializable {
 
     /**
      * 主键ID
@@ -24,25 +22,17 @@ public class Comment implements Serializable {
     @Id
     private ObjectId id;
     /**
-     * 动态ID
+     * 用户ID
      */
     @Indexed
-    private ObjectId momentId;
+    private Long loveUserId;
     /**
-     * 评论人ID
-     */
-    private Long userId;
-    /**
-     * 评论内容
-     */
-    private String content;
-    /**
-     * 父节点ID
+     * 被喜欢的用户ID
      */
     @Indexed
-    private ObjectId parentId;
+    private Long beLovedUserId;
     /**
-     * 发表时间
+     * 创建时间
      */
     private Long created;
 }

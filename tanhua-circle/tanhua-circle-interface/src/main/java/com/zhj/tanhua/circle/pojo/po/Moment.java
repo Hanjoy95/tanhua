@@ -10,14 +10,14 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 发布表，用户发布的动态内容
+ * 动态表，用于存储自己发布的动态
  *
  * @author huanjie.zhuang
  * @date 2021/6/17
  */
 @Data
-@Document(collection = "circle_publish")
-public class Publish implements Serializable {
+@Document(collection = "circle_moment")
+public class Moment implements Serializable {
 
     /**
      * 主键ID
@@ -50,6 +50,14 @@ public class Publish implements Serializable {
      */
     private List<Long> notSeeList;
     /**
+     * 点赞数
+     */
+    private Long likeNum;
+    /**
+     * 点赞用户
+     */
+    private List<Long> likeUsers;
+    /**
      * 经度
      */
     private String longitude;
@@ -64,5 +72,6 @@ public class Publish implements Serializable {
     /**
      * 发布时间
      */
+    @Indexed
     private Long created;
 }

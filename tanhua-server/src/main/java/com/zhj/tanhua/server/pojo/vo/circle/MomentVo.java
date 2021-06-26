@@ -9,14 +9,14 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 /**
- * 发布动态所需要前端传的参数
+ * 发布动态请求体
  *
  * @author huanjie.zhuang
  * @date 2021/6/18
  */
 @Data
 @ApiModel("发布动态")
-public class PublishVo {
+public class MomentVo {
 
     @ApiModelProperty(value = "文本内容")
     private String text;

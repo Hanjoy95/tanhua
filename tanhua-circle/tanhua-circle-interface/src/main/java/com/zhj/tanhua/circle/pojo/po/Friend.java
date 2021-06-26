@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.io.Serializable;
 
 /**
- * 用户好友表
+ * 好友表
  *
  * @author huanjie.zhuang
  * @date 2021/6/17
