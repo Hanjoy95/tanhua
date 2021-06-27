@@ -2,6 +2,7 @@ package com.zhj.tanhua.circle.api;
 
 import com.zhj.tanhua.circle.pojo.dto.MomentDto;
 import com.zhj.tanhua.circle.pojo.po.Comment;
+import com.zhj.tanhua.circle.pojo.po.Moment;
 import com.zhj.tanhua.circle.pojo.to.AlbumTo;
 import com.zhj.tanhua.circle.pojo.to.FeedTo;
 import com.zhj.tanhua.common.enums.FileTypeEnum;
@@ -35,6 +36,14 @@ public interface CircleApi {
      * @return 返回上传文件结果列表
      */
     List<UploadFileResult> uploadFiles(List<MultipartFile> files, FileTypeEnum fileType);
+
+    /**
+     * 查询某条动态
+     *
+     * @param momentId 动态ID
+     * @return 返回动态
+     */
+    Moment queryMoment(String momentId);
 
     /**
      * 查询自己的相册

@@ -170,6 +170,23 @@ public class CircleService implements CircleApi {
     }
 
     /**
+     * 查询某条动态
+     *
+     * @param momentId 动态ID
+     * @return 返回动态
+     */
+    @Override
+    public Moment queryMoment(String momentId) {
+
+        Moment moment = mongoTemplate.findOne(Query.query(Criteria.where("id")
+                .is(new ObjectId(momentId))), Moment.class);
+        if (null == moment) {
+            throw new ResourceNotFoundException("momentId: " + momentId + ", not found");
+        }
+        return moment;
+    }
+
+    /**
      * 查询自己的相册
      *
      * @param userId 用户ID

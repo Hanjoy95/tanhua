@@ -6,6 +6,7 @@ import com.zhj.tanhua.circle.api.CircleApi;
 import com.zhj.tanhua.circle.enums.SeeTypeEnum;
 import com.zhj.tanhua.circle.pojo.dto.MomentDto;
 import com.zhj.tanhua.circle.pojo.po.Comment;
+import com.zhj.tanhua.circle.pojo.po.Moment;
 import com.zhj.tanhua.circle.pojo.to.AlbumTo;
 import com.zhj.tanhua.circle.pojo.to.FeedTo;
 import com.zhj.tanhua.common.result.PageResult;
@@ -100,6 +101,16 @@ public class CircleService {
         }
 
         return momentBo;
+    }
+
+    /**
+     * 查询某条动态
+     *
+     * @param momentId 动态ID
+     * @return 返回动态
+     */
+    public Moment queryMoment(String momentId) {
+        return circleApi.queryMoment(momentId);
     }
 
     /**
