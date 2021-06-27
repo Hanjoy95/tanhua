@@ -11,14 +11,13 @@ public enum ResponseStatus {
     SUCCESS(200, "success"),
 
     SERVER_ERROR(4000, "server error"),
-    RESOURCE_DUPLICATE(4001, "resource duplicate"),
+    RESOURCE_HAS_EXIST(4001, "resource has exist"),
     RESOURCE_NOT_FOUND(4002, "resource not found"),
     PARAMETER_INVALID(4003, "parameter invalid"),
     TOKEN_EXPIRED(4004, "token expired"),
     CHECK_CODE_EXPIRED(4005, "checkCode expired"),
     REMOTE_SERVER_ERROR(4006, "remote server error"),
-    SENT_MESSAGE_ERROR(4007, "sent message error"),
-    UPDATE_REPEAT_ERROR(4008, "update repeat error");
+    SENT_MESSAGE_ERROR(4007, "sent message error");
 
     private final Integer code;
     private final String message;

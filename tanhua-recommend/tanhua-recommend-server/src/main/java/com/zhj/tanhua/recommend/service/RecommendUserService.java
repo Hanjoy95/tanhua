@@ -1,6 +1,6 @@
 package com.zhj.tanhua.recommend.service;
 
-import com.zhj.tanhua.common.exception.NotFoundException;
+import com.zhj.tanhua.common.exception.ResourceNotFoundException;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.recommend.api.RecommendUserApi;
 import com.zhj.tanhua.recommend.pojo.po.RecommendUser;
@@ -40,7 +40,7 @@ public class RecommendUserService implements RecommendUserApi {
 
         RecommendUser recommendUser = mongoTemplate.findOne(query, RecommendUser.class);
         if (null == recommendUser) {
-            throw new NotFoundException("the best recommendUser not found to userId: " + userId);
+            throw new ResourceNotFoundException("the best recommendUser not found to userId: " + userId);
         }
 
         return recommendUser;
@@ -64,7 +64,7 @@ public class RecommendUserService implements RecommendUserApi {
         long total = mongoTemplate.count(query, RecommendUser.class);
         List<RecommendUser> recommendUsers = mongoTemplate.find(query.with(pageable), RecommendUser.class);
         if (CollectionUtils.isEmpty(recommendUsers)) {
-            throw new NotFoundException("the recommendUser list not found to userId: " + userId);
+            throw new ResourceNotFoundException("the recommendUser list not found to userId: " + userId);
         }
 
         return PageResult.<RecommendUser>builder()

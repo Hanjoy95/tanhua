@@ -9,6 +9,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.io.Serializable;
 
 /**
+ * 喜欢表
+ *
  * @author huanjie.zhuang
  * @date 2021/6/22
  */
@@ -25,14 +27,15 @@ public class Love implements Serializable {
      * 用户ID
      */
     @Indexed
-    private Long loveUserId;
+    private Long loverId;
     /**
      * 被喜欢的用户ID
      */
     @Indexed
-    private Long beLovedUserId;
+    private Long beLoverId;
     /**
      * 创建时间
      */
+    @Indexed
     private Long created;
 }

@@ -153,7 +153,7 @@ public class UserService implements UserApi {
         String redisKey = "CHECK_CODE_" + phone;
         String value = redisTemplate.opsForValue().get(redisKey);
         if (StringUtils.isNotEmpty(value)) {
-            throw new ResourceDuplicateException("the last sent checkCode has not expired");
+            throw new ResourceHasExistException("the last sent checkCode has not expired");
         }
 
         String checkCode = sendSms(phone);

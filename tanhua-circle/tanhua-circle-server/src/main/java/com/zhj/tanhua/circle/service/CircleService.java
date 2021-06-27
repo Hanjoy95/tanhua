@@ -10,8 +10,9 @@ import com.zhj.tanhua.circle.pojo.to.FeedTo;
 import com.zhj.tanhua.common.enums.FileTypeEnum;
 import com.zhj.tanhua.common.enums.ImageTypeEnum;
 import com.zhj.tanhua.common.enums.VideoTypeEnum;
-import com.zhj.tanhua.common.exception.NotFoundException;
-import com.zhj.tanhua.common.exception.UpdateRepeatException;
+import com.zhj.tanhua.common.exception.ResourceNotFoundException;
+import com.zhj.tanhua.common.exception.ParameterInvalidException;
+import com.zhj.tanhua.common.exception.ResourceHasExistException;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.UploadFileResult;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -80,15 +80,15 @@ public class CircleService implements CircleApi {
 
         if (!SeeTypeEnum.PRIVATE.equals(momentDto.getSeeType())) {
             // 查询当前用户好友，将动态数据写入到好友的好友动态表中
-            Query query = Query.query(Criteria.where("userId").is(moment.getUserId()));
-            List<Friend> friends = mongoTemplate.find(query, Friend.class);
+            List<Friend> friends = mongoTemplate.find(new Query(), Friend.class,
+                    Friend.TABLE_NAME_PREFIX + momentDto.getUserId());
 
             Set<Long> userIds = friends.stream().map(Friend::getUserId).collect(Collectors.toSet());
             if (SeeTypeEnum.WHO_CAN_SEE.equals(momentDto.getSeeType())) {
-                friends = friends.stream().filter(friend -> userIds.contains(friend.getFriendId()))
+                friends = friends.stream().filter(friend -> userIds.contains(friend.getUserId()))
                         .collect(Collectors.toList());
             } else if (SeeTypeEnum.WHO_CANNOT_SEE.equals(momentDto.getSeeType())) {
-                friends = friends.stream().filter(friend -> !userIds.contains(friend.getFriendId()))
+                friends = friends.stream().filter(friend -> !userIds.contains(friend.getUserId()))
                         .collect(Collectors.toList());
             }
 
@@ -97,7 +97,7 @@ public class CircleService implements CircleApi {
                 feed.setUserId(moment.getUserId());
                 feed.setMomentId(moment.getId());
                 feed.setCreated(System.currentTimeMillis());
-                mongoTemplate.save(feed, Feed.TABLE_NAME_PREFIX + friend.getFriendId());
+                mongoTemplate.save(feed, Feed.TABLE_NAME_PREFIX + friend.getUserId());
             }
         }
 
@@ -193,6 +193,10 @@ public class CircleService implements CircleApi {
         for (Moment moment : moments) {
             AlbumTo albumTo = new AlbumTo();
             BeanUtils.copyProperties(moment, albumTo);
+            // 设置点赞数
+            albumTo.setLikeNum(mongoTemplate.count(new Query(Criteria.where("momentId")
+                    .is(moment.getId())), Like.class));
+            // 设置评论数
             albumTo.setCommentNum(mongoTemplate.count(new Query(Criteria.where("momentId")
                     .is(moment.getId())), Comment.class));
             albumTos.add(albumTo);
@@ -203,9 +207,9 @@ public class CircleService implements CircleApi {
     }
 
     /**
-     * 查询好友或推荐动态
+     * 查询好友动态
      *
-     * @param userId 用户ID，null则为查询推荐动态
+     * @param userId 好友ID
      * @param pageNum 当前页
      * @param pageSize 页大小
      * @return 返回好友动态的分页结果
@@ -213,43 +217,43 @@ public class CircleService implements CircleApi {
     @Override
     public PageResult<FeedTo> queryFeeds(Long userId, Integer pageNum, Integer pageSize) {
 
-        String tableName;
-        if (null == userId) {
-            // 推荐动态表名
-            tableName = Feed.RECOMMEND_TABLE_NAME;
-        } else {
-            // 好友动态表名
-            tableName = Feed.TABLE_NAME_PREFIX + userId;
-        }
-
-        // 查询好友或推荐动态表
+        // 查询好友动态表
         Pageable pageable = PageRequest.of(pageNum - 1, pageSize, Sort.by(Sort.Order.desc("created")));
-        Query queryFeed = new Query().with(pageable);
-        long total = mongoTemplate.count(queryFeed, Feed.class);
+        Query queryFeed = new Query();
+
+        long total = mongoTemplate.count(queryFeed, Feed.class, Feed.TABLE_NAME_PREFIX + userId);
         if (0 == total) {
             return PageResult.<FeedTo>builder().total(0L).pageNum((long) pageNum).pageSize((long) pageSize)
                     .hasNext(false).data(null).build();
         }
-        List<Feed> feeds = mongoTemplate.find(queryFeed, Feed.class, tableName);
+        List<Feed> feeds = mongoTemplate.find(queryFeed.with(pageable), Feed.class,
+                Feed.TABLE_NAME_PREFIX + userId);
+
         Map<ObjectId, FeedTo> feedMap = new HashMap<>();
         for (Feed feed : feeds) {
             FeedTo feedTo = new FeedTo();
             BeanUtils.copyProperties(feed, feedTo);
             feedTo.setFeedId(feed.getId().toHexString());
-            feedTo.setFeedId(feed.getId().toHexString());
+            feedTo.setMomentId(feed.getMomentId().toHexString());
+            // 设置点赞数
+            feedTo.setLikeNum(mongoTemplate.count(new Query(Criteria.where("momentId")
+                    .is(feed.getMomentId())), Like.class));
+            // 设置评论数
+            feedTo.setCommentNum(mongoTemplate.count(new Query(Criteria.where("momentId")
+                    .is(feed.getMomentId())), Comment.class));
+            // 是否有点赞
+            feedTo.setHasLike(mongoTemplate.exists(Query.query(Criteria.where("likerId").is(userId)
+                    .and("momentId").is(feed.getMomentId())), Like.class));
+            // 是否有评论
+            feedTo.setHasComment(mongoTemplate.exists(Query.query(Criteria.where("userId").is(userId)
+                    .and("momentId").is(feed.getMomentId())), Comment.class));
             feedMap.put(feed.getMomentId(), feedTo);
         }
 
         // 查询动态信息
-        Query queryPublish = Query.query(Criteria.where("id").in(feedMap.keySet()))
-                .with(Sort.by(Sort.Order.desc("created")));
-        List<Moment> momentList = mongoTemplate.find(queryPublish, Moment.class);
+        List<Moment> momentList = mongoTemplate.find(Query.query(Criteria.where("id").in(feedMap.keySet())), Moment.class);
         for (Moment moment : momentList) {
             BeanUtils.copyProperties(moment, feedMap.get(moment.getId()));
-            FeedTo feedTo = feedMap.get(moment.getId());
-            feedTo.setMomentId(moment.getId().toHexString());
-            feedTo.setCommentNum(mongoTemplate.count(new Query(Criteria.where("momentId")
-                    .is(moment.getId())), Comment.class));
         }
 
         return PageResult.<FeedTo>builder().total(total).pageNum((long) pageNum).pageSize((long) pageSize)
@@ -266,46 +270,37 @@ public class CircleService implements CircleApi {
     @Override
     public void likeOrUnlike(Long userId, String momentId, Boolean isLike) {
 
-        String tableName = Feed.TABLE_NAME_PREFIX + userId;
-        Feed feed = mongoTemplate.findOne(Query.query(Criteria.where("momentId").is(new ObjectId(momentId))),
-                Feed.class, tableName);
-
-        // 好友动态表中没找到
-        if (null == feed) {
-            tableName = Feed.RECOMMEND_TABLE_NAME;
-            feed = mongoTemplate.findOne(Query.query(Criteria.where("momentId").is(new ObjectId(momentId))),
-                    Feed.class, tableName);
-        }
-        // 推荐动态表中没找到
-        if (null == feed) {
-            throw new NotFoundException("momentId: " + momentId + ", not found");
+        Moment moment = mongoTemplate.findOne(Query.query(Criteria.where("id")
+                .is(new ObjectId(momentId))), Moment.class);
+        if (null == moment) {
+            log.error("momentId: {}, not found", momentId);
+            throw new ResourceNotFoundException("momentId: " + momentId + ", not found");
         }
 
+        Query query = Query.query(Criteria.where("likerId").is(userId).and("momentId").is(momentId));
         // 点赞
         if (isLike) {
             // 已点赞
-            if (feed.getHasLike()) {
-                throw new UpdateRepeatException("feed update repeat, hasLike is true");
+            if (mongoTemplate.exists(query, Like.class)) {
+                log.error("like has exist, userId: {}, momentId: {}", userId, momentId);
+                throw new ResourceHasExistException("like has exist, userId: " + userId + ", momentId: " + momentId);
             }
-            // 更新点赞
-            mongoTemplate.updateFirst(Query.query(Criteria.where("momentId").is(new ObjectId(momentId))),
-                    Update.update("hasLike", true), Feed.class, tableName);
-            // 更新好友的相册表
-            mongoTemplate.updateFirst(Query.query(Criteria.where("id").is(feed.getMomentId())),
-                    new Update().inc("likeNum", 1).push("likeUsers", userId), Moment.class);
+            // 写入点赞表
+            Like like = new Like();
+            like.setLikerId(userId);
+            like.setBeLikerId(moment.getUserId());
+            like.setMomentId(new ObjectId(momentId));
+            like.setCreated(System.currentTimeMillis());
+            mongoTemplate.save(like);
 
         // 取消点赞
         } else {
-            // 已取消点赞
-            if (!feed.getHasLike()) {
-                throw new UpdateRepeatException("feed update repeat, hasLike is false");
+            // 没有点赞过
+            if (!mongoTemplate.exists(query, Like.class)) {
+                log.error("never have like, userId: {}, momentId: {}", userId, moment);
+                throw new ParameterInvalidException("never have like, userId: " + userId + ", momentId: " + momentId);
             }
-            // 更新点赞
-            mongoTemplate.updateFirst(Query.query(Criteria.where("momentId").is(new ObjectId(momentId))),
-                    Update.update("hasLike", false), Feed.class, tableName);
-            // 更新好友的相册表
-            mongoTemplate.updateFirst(Query.query(Criteria.where("id").is(feed.getMomentId())),
-                    new Update().inc("likeNum", -1).pull("likeUsers", userId), Moment.class);
+            mongoTemplate.remove(query, Like.class);
         }
     }
 
@@ -324,6 +319,7 @@ public class CircleService implements CircleApi {
         comment.setUserId(userId);
         comment.setMomentId(new ObjectId(momentId));
         comment.setContent(content);
+        comment.setCreated(System.currentTimeMillis());
 
         // commentId不为空则是评论某个评论，否则是评论某个动态
         if (StringUtils.isNotBlank(commentId)) {
@@ -388,36 +384,39 @@ public class CircleService implements CircleApi {
     /**
      * 喜欢某个用户
      *
-     * @param loveUserId 用户ID
-     * @param belovedUserId 评论ID
+     * @param loverId 用户ID
+     * @param beLoverId 被喜欢的用户ID
      * @return 返回是否匹配成功
      */
     @Override
-    public boolean addLove(Long loveUserId, Long belovedUserId) {
+    public boolean addLove(Long loverId, Long beLoverId) {
 
+        if (mongoTemplate.exists(Query.query(Criteria.where("loverId").is(loverId)
+                .and("beLoverId").is(beLoverId)), Love.class)) {
+            log.error("love has exist, loverId: {}, beLoverId: {}", loverId, beLoverId);
+            throw new ResourceHasExistException("love has exist, loverId: " + loverId + ", beLoverId: " + beLoverId);
+        }
+
+        // 写入喜欢表
         Love love = new Love();
-        love.setLoveUserId(loveUserId);
-        love.setBeLovedUserId(belovedUserId);
+        love.setLoverId(loverId);
+        love.setBeLoverId(beLoverId);
         love.setCreated(System.currentTimeMillis());
-
         mongoTemplate.save(love);
 
-        if (mongoTemplate.exists(Query.query(Criteria.where("loveUserId").is(belovedUserId)
-                .and("belovedUserId").is(loveUserId)), Love.class)) {
-            List<Friend> friends = new ArrayList<>();
+        // 匹配成功，写入好友表
+        if (mongoTemplate.exists(Query.query(Criteria.where("loverId").is(beLoverId)
+                .and("beLoverId").is(loverId)), Love.class)) {
+
             Friend friend1 = new Friend();
-            friend1.setUserId(loveUserId);
-            friend1.setFriendId(belovedUserId);
+            friend1.setUserId(beLoverId);
             friend1.setCreated(System.currentTimeMillis());
-            friends.add(friend1);
+            mongoTemplate.save(friend1, Friend.TABLE_NAME_PREFIX + loverId);
 
             Friend friend2 = new Friend();
-            friend2.setUserId(belovedUserId);
-            friend2.setFriendId(loveUserId);
+            friend2.setUserId(loverId);
             friend2.setCreated(System.currentTimeMillis());
-            friends.add(friend2);
-
-            mongoTemplate.insertAll(friends);
+            mongoTemplate.save(friend2, Friend.TABLE_NAME_PREFIX + beLoverId);
 
             return true;
         }
@@ -428,13 +427,18 @@ public class CircleService implements CircleApi {
     /**
      * 取消喜欢某个用户
      *
-     * @param loveUserId 用户ID
-     * @param belovedUserId 评论ID
+     * @param loverId 用户ID
+     * @param beLoverId 被喜欢的用户ID
      */
     @Override
-    public void deleteLove(Long loveUserId, Long belovedUserId) {
-        mongoTemplate.remove(Query.query(Criteria.where("loveUserId").is(loveUserId)
-                .and("belovedUserId").is(belovedUserId)), Love.class);
+    public void deleteLove(Long loverId, Long beLoverId) {
+
+        Query query = Query.query(Criteria.where("loverId").is(loverId).and("beLoverId").is(beLoverId));
+        if (mongoTemplate.exists(query, Love.class)) {
+            log.error("love not found, loverId: {}, beLoverId: {}", loverId, beLoverId);
+            throw new ResourceNotFoundException("love not found, loverId: " + loverId + ", beLoverId: " + beLoverId);
+        }
+        mongoTemplate.remove(query, Love.class);
     }
 
     /**
@@ -454,7 +458,7 @@ public class CircleService implements CircleApi {
 
         long total = mongoTemplate.count(query, Love.class);
         List<Long> userIds = mongoTemplate.find(query.with(pageable), Love.class)
-                .stream().map(Love::getBeLovedUserId).collect(Collectors.toList());
+                .stream().map(isLove ? Love::getBeLoverId : Love::getLoverId).collect(Collectors.toList());
 
         return PageResult.<Long>builder().total(total).pageNum((long)pageNum).pageSize((long)pageSize)
                 .hasNext((long)pageNum * pageSize < total).data(userIds).build();

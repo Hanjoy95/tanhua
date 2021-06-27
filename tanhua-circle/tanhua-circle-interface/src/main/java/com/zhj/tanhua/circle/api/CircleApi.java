@@ -47,9 +47,9 @@ public interface CircleApi {
     PageResult<AlbumTo> queryAlbums(Long userId, Integer pageNum, Integer pageSize);
 
     /**
-     * 查询好友或推荐动态
+     * 查询好友动态
      *
-     * @param userId 用户ID，null则为查询推荐动态
+     * @param userId 好友ID
      * @param pageNum 当前页
      * @param pageSize 页大小
      * @return 返回好友动态的分页结果
@@ -98,19 +98,19 @@ public interface CircleApi {
     /**
      * 喜欢某个用户
      *
-     * @param loveUserId 用户ID
-     * @param belovedUserId 评论ID
+     * @param loverId 用户ID
+     * @param beLoverId 被喜欢的用户ID
      * @return 返回是否匹配成功
      */
-    boolean addLove(Long loveUserId, Long belovedUserId);
+    boolean addLove(Long loverId, Long beLoverId);
 
     /**
      * 取消喜欢某个用户
      *
-     * @param loveUserId 用户ID
-     * @param belovedUserId 评论ID
+     * @param loverId 用户ID
+     * @param beLoverId 被喜欢的用户ID
      */
-    void deleteLove(Long loveUserId, Long belovedUserId);
+    void deleteLove(Long loverId, Long beLoverId);
 
     /**
      * 查询我喜欢或喜欢我的用户

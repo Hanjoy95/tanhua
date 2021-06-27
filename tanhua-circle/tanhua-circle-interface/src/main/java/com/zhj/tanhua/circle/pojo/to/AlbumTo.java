@@ -1,7 +1,6 @@
 package com.zhj.tanhua.circle.pojo.to;
 
 import lombok.Data;
-import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.io.Serializable;
 import java.util.List;
@@ -14,7 +13,6 @@ import java.util.List;
 public class AlbumTo implements Serializable {
 
     private String momentId;
-    private Long userId;
     private String text;
     private List<String> medias;
 
@@ -23,7 +21,6 @@ public class AlbumTo implements Serializable {
     private List<Long> notSeeList;
 
     private Long likeNum;
-    private List<Long> likeUsers;
     private Long commentNum;
 
     private String longitude;
