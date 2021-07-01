@@ -45,14 +45,11 @@ public class ResponseResult<T> {
         return new ResponseResult<>(ResponseStatus.INTERNAL_SERVER_ERROR, null, data);
     }
 
-    public static<T> ResponseResult<T> fail(ResponseStatus status, String message) {
-        return new ResponseResult<>(status, message, null);
+    public static<T> ResponseResult<T> fail(String message) {
+        return new ResponseResult<>(ResponseStatus.INTERNAL_SERVER_ERROR, message, null);
     }
 
-    public static<T> ResponseResult<T> fail(Exception e) {
-        if (e instanceof BaseException) {
-            return new ResponseResult<>(((BaseException) e).getStatus(), e.getMessage(), null);
-        }
-        return new ResponseResult<>(ResponseStatus.INTERNAL_SERVER_ERROR, e.getMessage(), null);
+    public static<T> ResponseResult<T> fail(BaseException e) {
+        return new ResponseResult<>(e.getStatus(), e.getMessage(), null);
     }
 }

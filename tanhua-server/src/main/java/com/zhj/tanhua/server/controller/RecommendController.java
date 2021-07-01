@@ -39,7 +39,7 @@ public class RecommendController {
         try {
             return ResponseResult.ok(recommendService.getTodayBest());
         }catch (BaseException e) {
-            return ResponseResult.fail(e.getStatus(), e.getMessage());
+            return ResponseResult.fail(e);
         }
     }
 
@@ -56,7 +56,7 @@ public class RecommendController {
         try {
             return ResponseResult.ok(recommendService.getRecommendUsers(recommendUserVo));
         } catch (BaseException e) {
-            return ResponseResult.fail(e.getStatus(), e.getMessage());
+            return ResponseResult.fail(e);
         }
     }
 }

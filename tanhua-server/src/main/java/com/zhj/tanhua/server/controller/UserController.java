@@ -1,5 +1,6 @@
 package com.zhj.tanhua.server.controller;
 
+import com.zhj.tanhua.common.exception.BaseException;
 import com.zhj.tanhua.common.result.ResponseResult;
 import com.zhj.tanhua.server.service.UserService;
 import com.zhj.tanhua.server.web.annotation.Auth;
@@ -41,7 +42,7 @@ public class UserController {
                                                      @RequestParam("checkCode") String checkCode){
         try {
             return ResponseResult.ok(userService.loginWithCheckCode(phone, checkCode));
-        } catch (Exception e) {
+        } catch (BaseException e) {
             return ResponseResult.fail(e);
         }
     }
@@ -59,7 +60,7 @@ public class UserController {
                                                     @RequestParam("password") String password){
         try {
             return ResponseResult.ok(userService.loginWithPassword(phone, password));
-        } catch (Exception e) {
+        } catch (BaseException e) {
             return ResponseResult.fail(e);
         }
     }
@@ -76,7 +77,7 @@ public class UserController {
 
         try {
             return ResponseResult.ok(userService.sentCheckCode(phone));
-        } catch (Exception e) {
+        } catch (BaseException e) {
             return ResponseResult.fail(e);
         }
     }
@@ -93,7 +94,7 @@ public class UserController {
 
         try {
             return ResponseResult.ok(userService.getUserByToken(token));
-        } catch (Exception e) {
+        } catch (BaseException e) {
             return ResponseResult.fail(e);
         }
     }
@@ -110,7 +111,7 @@ public class UserController {
     public ResponseResult<Void> saveUserInfo(@RequestBody UserInfoDto userInfoDto) {
         try {
             userService.saveUserInfo(userInfoDto);
-        } catch (Exception e) {
+        } catch (BaseException e) {
             return ResponseResult.fail(e);
         }
 
@@ -129,7 +130,7 @@ public class UserController {
     public ResponseResult<Void> modifyPassword(String oldPassword, String newPassword) {
         try {
             userService.modifyPassword(oldPassword, newPassword);
-        } catch (Exception e) {
+        } catch (BaseException e) {
             return ResponseResult.fail(e);
         }
 
@@ -148,7 +149,7 @@ public class UserController {
     public ResponseResult<Void> saveAvatar(@RequestParam("avatar") MultipartFile file) {
         try {
             userService.saveAvatar(file);
-        } catch (Exception e) {
+        } catch (BaseException e) {
             return ResponseResult.fail(e);
         }
 
@@ -167,7 +168,7 @@ public class UserController {
 
         try {
             return ResponseResult.ok(userService.getUserInfo(UserThreadLocal.get().getId()));
-        } catch (Exception e) {
+        } catch (BaseException e) {
             return ResponseResult.fail(e);
         }
     }
