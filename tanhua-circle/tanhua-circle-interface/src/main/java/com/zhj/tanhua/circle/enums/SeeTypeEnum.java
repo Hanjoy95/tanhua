@@ -1,5 +1,7 @@
 package com.zhj.tanhua.circle.enums;
 
+import com.zhj.tanhua.common.exception.EnumConvertException;
+
 /**
  * 可看类型枚举
  *
@@ -10,8 +12,7 @@ public enum SeeTypeEnum {
     PUBLIC(0),
     PRIVATE(1),
     WHO_CAN_SEE(2),
-    WHO_CANNOT_SEE(3),
-    UNKNOWN(4);
+    WHO_CANNOT_SEE(3);
 
     private final int value;
 
@@ -29,6 +30,6 @@ public enum SeeTypeEnum {
                 return seeTypeEnum;
             }
         }
-        return UNKNOWN;
+        throw new EnumConvertException("可看类型枚举转换错误");
     }
 }

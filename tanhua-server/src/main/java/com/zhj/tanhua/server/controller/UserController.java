@@ -1,6 +1,5 @@
 package com.zhj.tanhua.server.controller;
 
-import com.zhj.tanhua.common.exception.BaseException;
 import com.zhj.tanhua.common.result.ResponseResult;
 import com.zhj.tanhua.server.service.UserService;
 import com.zhj.tanhua.server.web.annotation.Auth;
@@ -42,8 +41,8 @@ public class UserController {
                                         @RequestParam("checkCode") String checkCode){
         try {
             return ResponseResult.ok(userService.login(phone, checkCode));
-        } catch (BaseException e) {
-            return ResponseResult.fail(e.getStatus(), e.getMessage());
+        } catch (Exception e) {
+            return ResponseResult.fail(e);
         }
     }
 
@@ -59,8 +58,8 @@ public class UserController {
 
         try {
             return ResponseResult.ok(userService.sentCheckCode(phone));
-        } catch (BaseException e) {
-            return ResponseResult.fail(e.getStatus(), e.getMessage());
+        } catch (Exception e) {
+            return ResponseResult.fail(e);
         }
     }
 
@@ -76,8 +75,8 @@ public class UserController {
 
         try {
             return ResponseResult.ok(userService.getUserByToken(token));
-        } catch (BaseException e) {
-            return ResponseResult.fail(e.getStatus(), e.getMessage());
+        } catch (Exception e) {
+            return ResponseResult.fail(e);
         }
     }
 
@@ -93,8 +92,8 @@ public class UserController {
     public ResponseResult<Void> saveUserInfo(@RequestBody UserInfoDto userInfoDto) {
         try {
             userService.saveUserInfo(userInfoDto);
-        } catch (BaseException e) {
-            return ResponseResult.fail(e.getStatus(), e.getMessage());
+        } catch (Exception e) {
+            return ResponseResult.fail(e);
         }
 
         return ResponseResult.ok();
@@ -112,8 +111,8 @@ public class UserController {
     public ResponseResult<Void> modifyPassword(String oldPassword, String newPassword) {
         try {
             userService.modifyPassword(oldPassword, newPassword);
-        } catch (BaseException e) {
-            return ResponseResult.fail(e.getStatus(), e.getMessage());
+        } catch (Exception e) {
+            return ResponseResult.fail(e);
         }
 
         return ResponseResult.ok();
@@ -131,8 +130,8 @@ public class UserController {
     public ResponseResult<Void> saveAvatar(@RequestParam("avatar") MultipartFile file) {
         try {
             userService.saveAvatar(file);
-        } catch (BaseException e) {
-            return ResponseResult.fail(e.getStatus(), e.getMessage());
+        } catch (Exception e) {
+            return ResponseResult.fail(e);
         }
 
         return ResponseResult.ok();
@@ -150,8 +149,8 @@ public class UserController {
 
         try {
             return ResponseResult.ok(userService.getUserInfo(UserThreadLocal.get().getId()));
-        } catch (BaseException e) {
-            return ResponseResult.fail(e.getStatus(), e.getMessage());
+        } catch (Exception e) {
+            return ResponseResult.fail(e);
         }
     }
 }

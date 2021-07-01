@@ -1,6 +1,7 @@
 package com.zhj.tanhua.common.result;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.zhj.tanhua.common.exception.BaseException;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -40,15 +41,18 @@ public class ResponseResult<T> {
         return new ResponseResult<>(ResponseStatus.SUCCESS, null, data);
     }
 
-    public static<T> ResponseResult<T> fail(String message) {
-        return new ResponseResult<>(ResponseStatus.SERVER_ERROR, message, null);
-    }
-
     public static<T> ResponseResult<T> fail(T data) {
-        return new ResponseResult<>(ResponseStatus.SERVER_ERROR, null, data);
+        return new ResponseResult<>(ResponseStatus.INTERNAL_SERVER_ERROR, null, data);
     }
 
     public static<T> ResponseResult<T> fail(ResponseStatus status, String message) {
         return new ResponseResult<>(status, message, null);
+    }
+
+    public static<T> ResponseResult<T> fail(Exception e) {
+        if (e instanceof BaseException) {
+            return new ResponseResult<>(((BaseException) e).getStatus(), e.getMessage(), null);
+        }
+        return new ResponseResult<>(ResponseStatus.INTERNAL_SERVER_ERROR, e.getMessage(), null);
     }
 }

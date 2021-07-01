@@ -1,6 +1,7 @@
 package com.zhj.tanhua.common.result;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.zhj.tanhua.common.exception.EnumConvertException;
 
 /**
  * @author huanjie.zhuang
@@ -10,14 +11,15 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public enum ResponseStatus {
     SUCCESS(200, "success"),
 
-    SERVER_ERROR(4000, "server error"),
+    INTERNAL_SERVER_ERROR(4000, "internal server error"),
     RESOURCE_HAS_EXIST(4001, "resource has exist"),
     RESOURCE_NOT_FOUND(4002, "resource not found"),
     PARAMETER_INVALID(4003, "parameter invalid"),
     TOKEN_EXPIRED(4004, "token expired"),
     CHECK_CODE_EXPIRED(4005, "checkCode expired"),
     REMOTE_SERVER_ERROR(4006, "remote server error"),
-    SENT_MESSAGE_ERROR(4007, "sent message error");
+    SENT_MESSAGE_ERROR(4007, "sent message error"),
+    ENUM_CONVERT_ERROR(4008, "enum convert error");
 
     private final Integer code;
     private final String message;
@@ -41,6 +43,6 @@ public enum ResponseStatus {
                 return responseStatus;
             }
         }
-        return SERVER_ERROR;
+        throw new EnumConvertException("响应状态枚举转换错误");
     }
 }
