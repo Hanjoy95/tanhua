@@ -1,5 +1,7 @@
 package com.zhj.tanhua.common.enums;
 
+import com.zhj.tanhua.common.exception.EnumConvertException;
+
 /**
  * 文件类型枚举
  *
@@ -27,6 +29,6 @@ public enum FileTypeEnum {
                 return fileTypeEnum;
             }
         }
-        return UNKNOWN;
+        throw new EnumConvertException("文件类型枚举转换错误");
     }
 }

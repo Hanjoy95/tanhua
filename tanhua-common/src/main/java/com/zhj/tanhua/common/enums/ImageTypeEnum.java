@@ -1,5 +1,7 @@
 package com.zhj.tanhua.common.enums;
 
+import com.zhj.tanhua.common.exception.EnumConvertException;
+
 /**
  * 图片文件类型枚举
  *
@@ -30,6 +32,6 @@ public enum ImageTypeEnum {
                 return imageTypeEnum;
             }
         }
-        return UNKNOWN;
+        throw new EnumConvertException("图片类型枚举转换错误");
     }
 }

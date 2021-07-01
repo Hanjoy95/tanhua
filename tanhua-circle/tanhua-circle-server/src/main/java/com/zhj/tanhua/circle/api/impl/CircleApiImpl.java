@@ -1,4 +1,4 @@
-package com.zhj.tanhua.circle.service;
+package com.zhj.tanhua.circle.api.impl;
 
 import com.aliyun.oss.OSS;
 import com.zhj.tanhua.circle.api.CircleApi;
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @DubboService(version = "1.0")
-public class CircleService implements CircleApi {
+public class CircleApiImpl implements CircleApi {
 
     @Autowired
     private MongoTemplate mongoTemplate;

@@ -1,4 +1,4 @@
-package com.zhj.tanhua.recommend.service;
+package com.zhj.tanhua.recommend.api.impl;
 
 import com.zhj.tanhua.common.exception.ResourceNotFoundException;
 import com.zhj.tanhua.common.result.PageResult;
@@ -21,7 +21,7 @@ import java.util.List;
  * @date 2021/6/12
  */
 @DubboService(version = "1.0")
-public class RecommendUserService implements RecommendUserApi {
+public class RecommendUserApiImpl implements RecommendUserApi {
 
     @Autowired
     private MongoTemplate mongoTemplate;

@@ -1,6 +1,7 @@
 package com.zhj.tanhua.server.service;
 
 import com.zhj.tanhua.server.web.threadlocal.UserThreadLocal;
+import com.zhj.tanhua.user.api.UserInfoApi;
 import com.zhj.tanhua.user.pojo.dto.UserInfoDto;
 import com.zhj.tanhua.user.pojo.po.User;
 import com.zhj.tanhua.user.pojo.to.UserInfoTo;
@@ -21,8 +22,10 @@ import java.util.List;
 @Service
 public class UserService {
 
-    @DubboReference(version = "1.0", url = "dubbo://127.0.0.1:19100")
+    @DubboReference(version = "1.0")
     UserApi userApi;
+    @DubboReference(version = "1.0")
+    UserInfoApi userInfoApi;
 
     /**
      * 用户登录
@@ -56,18 +59,6 @@ public class UserService {
     }
 
     /**
-     * 完善个人信息
-     *
-     * @param userInfoDto 用户信息
-     */
-    public void saveUserInfo(UserInfoDto userInfoDto) {
-
-        User user = UserThreadLocal.get();
-        userInfoDto.setUserId(user.getId());
-        userApi.saveUserInfo(userInfoDto);
-    }
-
-    /**
      * 修改密码
      *
      * @param oldPassword 旧密码
@@ -85,7 +76,19 @@ public class UserService {
     public void saveAvatar(MultipartFile file) {
 
         User user = UserThreadLocal.get();
-        userApi.saveAvatar(user.getId(), file);
+        userInfoApi.saveAvatar(user.getId(), file);
+    }
+
+    /**
+     * 完善个人信息
+     *
+     * @param userInfoDto 用户信息
+     */
+    public void saveUserInfo(UserInfoDto userInfoDto) {
+
+        User user = UserThreadLocal.get();
+        userInfoDto.setUserId(user.getId());
+        userInfoApi.saveUserInfo(userInfoDto);
     }
 
     /**
@@ -95,7 +98,7 @@ public class UserService {
      * @return UserInfoTo
      */
     public UserInfoTo getUserInfo(Long userId) {
-        return userApi.getUserInfo(userId);
+        return userInfoApi.getUserInfo(userId);
     }
 
     /**
@@ -108,6 +111,6 @@ public class UserService {
      * @return List<UserInfoTo>
      */
     List<UserInfoTo> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city) {
-        return userApi.getUserInfos(userIds, sex, age, city);
+        return userInfoApi.getUserInfos(userIds, sex, age, city);
     }
 }

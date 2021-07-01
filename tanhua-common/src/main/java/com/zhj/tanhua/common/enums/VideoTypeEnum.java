@@ -1,5 +1,7 @@
 package com.zhj.tanhua.common.enums;
 
+import com.zhj.tanhua.common.exception.EnumConvertException;
+
 /**
  * 视频文件类型枚举
  *
@@ -11,8 +13,7 @@ public enum VideoTypeEnum {
     AVI(".avi"),
     MP4(".mp4"),
     RMVB(".rmvb"),
-    MPEG(".mpeg"),
-    UNKNOWN("unknown");;
+    MPEG(".mpeg");
 
     private String type;
 
@@ -30,6 +31,6 @@ public enum VideoTypeEnum {
                 return videoTypeEnum;
             }
         }
-        return UNKNOWN;
+        throw new EnumConvertException("视频类型枚举转换错误");
     }
 }

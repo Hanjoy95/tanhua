@@ -9,4 +9,6 @@ package com.zhj.tanhua.common.constant;
 public class ThConstant {
 
     public static final String AUTHORIZATION = "Authorization";
+    public static final String COMMA = ",";
+    public static final String SPOT = ".";
 }
