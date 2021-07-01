@@ -29,18 +29,36 @@ public class UserController {
     private UserService userService;
 
     /**
-     * 用户登录
+     * 验证码登录
      *
      * @param phone 用户手机号
-     * @param checkCode  验证码
-     * @return ResponseResult<UserTo>
+     * @param checkCode 验证码
+     * @return 返回用户信息
      */
     @ApiOperation("登录")
-    @GetMapping("/login")
-    public ResponseResult<UserTo> login(@RequestParam("phone") String phone,
-                                        @RequestParam("checkCode") String checkCode){
+    @GetMapping("/login/checkCode")
+    public ResponseResult<UserTo> loginWithCheckCode(@RequestParam("phone") String phone,
+                                                     @RequestParam("checkCode") String checkCode){
         try {
-            return ResponseResult.ok(userService.login(phone, checkCode));
+            return ResponseResult.ok(userService.loginWithCheckCode(phone, checkCode));
+        } catch (Exception e) {
+            return ResponseResult.fail(e);
+        }
+    }
+
+    /**
+     * 密码登录
+     *
+     * @param phone 用户手机号
+     * @param password 密码
+     * @return 返回用户信息
+     */
+    @ApiOperation("登录")
+    @GetMapping("/login/password")
+    public ResponseResult<UserTo> loginWithPassword(@RequestParam("phone") String phone,
+                                                    @RequestParam("password") String password){
+        try {
+            return ResponseResult.ok(userService.loginWithPassword(phone, password));
         } catch (Exception e) {
             return ResponseResult.fail(e);
         }
@@ -50,7 +68,7 @@ public class UserController {
      * 发送验证码
      *
      * @param phone 用户手机号
-     * @return ResponseResult<String>
+     * @return 返回验证码
      */
     @ApiOperation("发送验证码")
     @GetMapping("/sentCheckCode")
@@ -67,7 +85,7 @@ public class UserController {
      * 根据token查询用户数据
      *
      * @param  token 用户token
-     * @return ResponseResult<User>
+     * @return 返回用户信息
      */
     @ApiOperation("根据token查询用户")
     @GetMapping("/token/{token}")
@@ -84,7 +102,7 @@ public class UserController {
      * 完善个人信息
      *
      * @param userInfoDto 用户信息
-     * @return ResponseResult<Void>
+     * @return 返回响应
      */
     @ApiOperation("保存信息")
     @PostMapping("/saveInfo")
@@ -122,7 +140,7 @@ public class UserController {
      * 上传头像
      *
      * @param file 用户头像图片文件
-     * @return ResponseResult<Object>
+     * @return 返回响应
      */
     @ApiOperation("保存头像")
     @PostMapping("/saveAvatar")
@@ -140,7 +158,7 @@ public class UserController {
     /**
      * 获取用户详细信息
      *
-     * @return ResponseResult<UserInfoDto>
+     * @return 返回用户详细信息
      */
     @ApiOperation("获取详细信息")
     @GetMapping("/info")

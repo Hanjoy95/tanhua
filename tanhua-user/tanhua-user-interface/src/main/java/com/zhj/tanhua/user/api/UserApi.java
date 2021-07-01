@@ -12,19 +12,28 @@ import com.zhj.tanhua.user.pojo.to.UserTo;
 public interface UserApi {
 
     /**
-     * 用户登录
+     * 验证码登录
      *
      * @param phone 用户手机号
      * @param checkCode  验证码
-     * @return UserTo
+     * @return 返回用户信息
      */
-    UserTo login(String phone, String checkCode);
+    UserTo loginWithCheckCode(String phone, String checkCode);
+
+    /**
+     * 密码登录
+     *
+     * @param phone 用户手机号
+     * @param password 密码
+     * @return 返回用户信息
+     */
+    UserTo loginWithPassword(String phone, String password);
 
     /**
      * 发送验证码
      *
      * @param phone 用户手机号
-     * @return String
+     * @return 返回验证码
      */
     String sentCheckCode(String phone);
 
@@ -32,7 +41,7 @@ public interface UserApi {
      * 根据token查询用户数据
      *
      * @param token 用户token
-     * @return User
+     * @return 返回用户信息
      */
     User getUserByToken(String token);
 

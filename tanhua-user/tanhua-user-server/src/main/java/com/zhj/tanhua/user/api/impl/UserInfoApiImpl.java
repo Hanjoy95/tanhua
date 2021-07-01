@@ -112,7 +112,7 @@ public class UserInfoApiImpl implements UserInfoApi {
      * 获取用户详细信息
      *
      * @param userId 用户ID
-     * @return UserInfoTo
+     * @return 返回用户详细信息
      */
     @Override
     public UserInfoTo getUserInfo(Long userId) {
@@ -136,7 +136,7 @@ public class UserInfoApiImpl implements UserInfoApi {
      * @param sex 性别
      * @param age 年龄
      * @param city 城市
-     * @return List<UserInfoTo>
+     * @return 返回用户详细信息列表
      */
     @Override
     public List<UserInfoTo> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city) {

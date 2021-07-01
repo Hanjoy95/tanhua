@@ -54,15 +54,14 @@ public class UserApiImpl implements UserApi {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     /**
-     * 登录
+     * 验证码登录
      *
      * @param phone 用户手机号
      * @param checkCode  验证码
-     * @return UserTo
+     * @return 返回用户信息
      */
     @Override
-    @SneakyThrows
-    public UserTo login(String phone, String checkCode) {
+    public UserTo loginWithCheckCode(String phone, String checkCode) {
 
         // 校验验证码是否正确
         String value = redisTemplate.opsForValue().get("CHECK_CODE_" + phone);
@@ -92,6 +91,35 @@ public class UserApiImpl implements UserApi {
             isNew = true;
         }
 
+        return UserTo.builder().isNew(isNew).userId(user.getId()).token(genToken(user, phone)).build();
+    }
+
+    /**
+     * 密码登录
+     *
+     * @param phone 用户手机号
+     * @param password 密码
+     * @return 返回用户信息
+     */
+    @Override
+    public UserTo loginWithPassword(String phone, String password) {
+
+        User user = userDao.selectOne(Wrappers.<User>lambdaQuery().eq(User::getPhone, phone));
+        if (user.getPassword().equals(DigestUtils.md5Hex(password))) {
+            return UserTo.builder().userId(user.getId()).token(genToken(user, phone)).build();
+        }
+        throw new ParameterInvalidException("密码输入错误");
+    }
+
+    /**
+     * 生成token
+     *
+     * @param user 用户对象
+     * @param phone 用户手机号
+     * @return 返回token
+     */
+    @SneakyThrows
+    private String genToken(User user, String phone) {
         Map<String, Object> claims = new HashMap<>(2);
         claims.put("id", user.getId());
         claims.put("phone", phone);
@@ -118,14 +146,14 @@ public class UserApiImpl implements UserApi {
             throw new SentMessageException("phone: {}, sent message error", e);
         }
 
-        return UserTo.builder().isNew(isNew).userId(user.getId()).token(token).build();
+        return token;
     }
 
     /**
      * 发送验证码
      *
      * @param phone 用户手机号
-     * @return UserDto
+     * @return 返回验证码
      */
     @Override
     public String sentCheckCode(String phone) {
@@ -136,19 +164,25 @@ public class UserApiImpl implements UserApi {
             throw new ResourceHasExistException("上一次发送的验证还未过期");
         }
 
-        String checkCode = sendSms(phone);
+        String checkCode = sent(phone);
         if (null == checkCode) {
             log.error("phone: {}, sent check code fail", phone);
             throw new BaseException("发送验证码失败");
         }
 
-        // 将验证码存储到redis,2分钟后失效
+        // 将验证码存储到redis，2分钟后失效
         redisTemplate.opsForValue().set(redisKey, checkCode, Duration.ofMinutes(2));
 
         return checkCode;
     }
 
-    private String sendSms(String phone) {
+    /**
+     * 发送验证码
+     *
+     * @param phone 用户手机号
+     * @return 返回验证码
+     */
+    private String sent(String phone) {
 //        String url = "https://open.ucpaas.com/ol/sms/sendsms";
 //        Map<String, Object> params = new HashMap<>();
 //        params.put("sid", "56f6523e8f50c85fe92d5d12a8dabd6f");
@@ -182,7 +216,7 @@ public class UserApiImpl implements UserApi {
      * 根据token查询用户数据
      *
      * @param token 用户token
-     * @return User
+     * @return 返回用户信息
      */
     @Override
     @SneakyThrows

@@ -28,21 +28,32 @@ public class UserService {
     UserInfoApi userInfoApi;
 
     /**
-     * 用户登录
+     * 验证码登录
      *
      * @param phone 用户手机号
-     * @param checkCode  验证码
-     * @return UserTo
+     * @param checkCode 验证码
+     * @return 返回用户信息
      */
-    public UserTo login(String phone, String checkCode) {
-        return userApi.login(phone, checkCode);
+    public UserTo loginWithCheckCode(String phone, String checkCode) {
+        return userApi.loginWithCheckCode(phone, checkCode);
+    }
+
+    /**
+     * 密码登录
+     *
+     * @param phone 用户手机号
+     * @param password 密码
+     * @return 返回用户信息
+     */
+    public UserTo loginWithPassword(String phone, String password) {
+        return userApi.loginWithPassword(phone, password);
     }
 
     /**
      * 发送验证码
      *
      * @param phone 用户手机号
-     * @return String
+     * @return 返回验证码
      */
     public String sentCheckCode(String phone) {
         return userApi.sentCheckCode(phone);
@@ -52,7 +63,7 @@ public class UserService {
      * 根据token查询用户数据
      *
      * @param token 用户token
-     * @return User
+     * @return 返回用户信息
      */
     public User getUserByToken(String token) {
         return userApi.getUserByToken(token);
@@ -95,7 +106,7 @@ public class UserService {
      * 获取用户详细信息
      *
      * @param userId 用户ID
-     * @return UserInfoTo
+     * @return 返回用户详细
      */
     public UserInfoTo getUserInfo(Long userId) {
         return userInfoApi.getUserInfo(userId);
@@ -108,7 +119,7 @@ public class UserService {
      * @param sex 性别
      * @param age 年龄
      * @param city 城市
-     * @return List<UserInfoTo>
+     * @return 返回用户详细列表
      */
     List<UserInfoTo> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city) {
         return userInfoApi.getUserInfos(userIds, sex, age, city);

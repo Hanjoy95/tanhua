@@ -1,5 +1,6 @@
 package com.zhj.tanhua.user.pojo.to;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
 
@@ -13,6 +14,7 @@ import java.io.Serializable;
 @Builder
 public class UserTo implements Serializable {
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Boolean isNew;
     private Long userId;
     private String token;
