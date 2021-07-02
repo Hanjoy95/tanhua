@@ -1,5 +1,8 @@
 package com.zhj.tanhua.common.enums;
 
+import com.zhj.tanhua.common.exception.EnumConvertException;
+import org.omg.CORBA.UNKNOWN;
+
 /**
  * 视频文件类型枚举
  *
@@ -12,7 +15,7 @@ public enum VideoTypeEnum {
     MP4(".mp4"),
     RMVB(".rmvb"),
     MPEG(".mpeg"),
-    UNKNOWN("unknown");;
+    UNKNOWN("unknown");
 
     private String type;
 
@@ -26,7 +29,7 @@ public enum VideoTypeEnum {
 
     public static VideoTypeEnum getType(String type) {
         for (VideoTypeEnum videoTypeEnum : VideoTypeEnum.values()) {
-            if (videoTypeEnum.getType() == type) {
+            if (videoTypeEnum.getType().equals(type)) {
                 return videoTypeEnum;
             }
         }

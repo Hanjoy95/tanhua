@@ -44,5 +44,6 @@ public class Comment implements Serializable {
     /**
      * 发表时间
      */
+    @Indexed
     private Long created;
 }

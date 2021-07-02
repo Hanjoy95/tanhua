@@ -10,7 +10,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 动态表，用于存储自己发布的动态
+ * 动态表
  *
  * @author huanjie.zhuang
  * @date 2021/6/17
@@ -49,14 +49,6 @@ public class Moment implements Serializable {
      * 不给谁看的用户ID列表
      */
     private List<Long> notSeeList;
-    /**
-     * 点赞数
-     */
-    private Long likeNum;
-    /**
-     * 点赞用户
-     */
-    private List<Long> likeUsers;
     /**
      * 经度
      */

@@ -1,5 +1,8 @@
 package com.zhj.tanhua.user.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+import com.zhj.tanhua.common.exception.EnumConvertException;
+
 /**
  * 状态枚举
  *
@@ -7,27 +10,34 @@ package com.zhj.tanhua.user.enums;
  * @date 2021/6/19
  */
 public enum StatusEnum {
-    single(0),
-    in_love(1),
-    married(2),
-    unknown(3);
+    SINGLE(0, "单身"),
+    IN_LOVE(1, "恋爱中"),
+    MARRIED(2, "已婚"),
+    UNKNOWN(3, "未知");
 
-    private final int value;
+    private final int val;
+    private final String desc;
 
-    StatusEnum(int value) {
-        this.value = value;
+    StatusEnum(int val, String desc) {
+        this.val = val;
+        this.desc = desc;
     }
 
-    public Integer getValue() {
-        return this.value;
+    public Integer getVal() {
+        return this.val;
+    }
+
+    @JsonValue
+    public String getDesc() {
+        return this.desc;
     }
 
     public static StatusEnum getType(int num) {
         for (StatusEnum statusEnum : StatusEnum.values()) {
-            if (statusEnum.getValue() == num) {
+            if (statusEnum.getVal() == num) {
                 return statusEnum;
             }
         }
-        return unknown;
+        throw new EnumConvertException("状态枚举转换错误");
     }
 }

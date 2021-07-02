@@ -6,10 +6,10 @@ import com.zhj.tanhua.common.enums.ResponseStatus;
  * @author huanjie.zhuang
  * @date 2021/6/18
  */
-public class CheckCodeExpiredException extends BaseException {
+public class ResourceHasExistException extends BaseException {
 
-    public CheckCodeExpiredException(String message) {
+    public ResourceHasExistException(String message) {
         super(message);
-        this.setStatus(ResponseStatus.CHECK_CODE_EXPIRED);
+        this.setStatus(ResponseStatus.RESOURCE_HAS_EXIST);
     }
 }

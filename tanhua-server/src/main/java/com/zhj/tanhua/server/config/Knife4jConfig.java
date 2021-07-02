@@ -1,14 +1,18 @@
 package com.zhj.tanhua.server.config;
 
+import com.zhj.tanhua.common.constant.ThConstant;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.builders.RequestParameterBuilder;
 import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+import java.util.Collections;
 
 /**
  * @author huanjie.zhuang
@@ -29,11 +33,18 @@ public class Knife4jConfig {
                         .version("1.0")
                         .build())
                 // 分组名称
-//                .groupName("1.0版本")
+                .groupName("1.0版本")
                 .select()
                 // 指定Controller扫描包路径
                 .apis(RequestHandlerSelectors.basePackage("com.zhj.tanhua.server.controller"))
                 .paths(PathSelectors.any())
-                .build();
+                .build()
+                .globalRequestParameters(Collections.singletonList(
+                        new RequestParameterBuilder()
+                                .name(ThConstant.AUTHORIZATION)
+                                .description("认证token")
+                                .in("header")
+                                .required(false)
+                                .build()));
     }
 }

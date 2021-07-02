@@ -6,20 +6,15 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.io.Serializable;
-
 /**
- * 好友表，每个用户存储一张表
- * 表名: circle_friend_{userId}
+ * 点赞表
  *
  * @author huanjie.zhuang
- * @date 2021/6/17
+ * @date 2021/6/27
  */
 @Data
-@Document(collection = "circle_friend")
-public class Friend implements Serializable {
-
-    public static final String TABLE_NAME_PREFIX = "circle_friend_";
+@Document(collection = "circle_like")
+public class Like {
 
     /**
      * 主键ID
@@ -27,11 +22,21 @@ public class Friend implements Serializable {
     @Id
     private ObjectId id;
     /**
-     * 好友ID
+     * 点赞人ID
      */
-    private Long userId;
+    private Long likerId;
     /**
-     * 添加时间
+     * 被点赞人ID
+     */
+    @Indexed
+    private Long beLikerId;
+    /**
+     * 动态ID
+     */
+    @Indexed
+    private ObjectId momentId;
+    /**
+     * 创建时间
      */
     @Indexed
     private Long created;

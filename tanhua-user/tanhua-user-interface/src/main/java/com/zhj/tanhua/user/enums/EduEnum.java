@@ -1,5 +1,8 @@
 package com.zhj.tanhua.user.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+import com.zhj.tanhua.common.exception.EnumConvertException;
+
 /**
  * 学历枚举
  *
@@ -7,33 +10,40 @@ package com.zhj.tanhua.user.enums;
  * @date 2021/6/19
  */
 public enum EduEnum {
-    illiteracy(0),
-    primary_school(1),
-    middle_school(2),
-    technical_secondary_school(3),
-    high_school(4),
-    junior_college(5),
-    undergraduate(6),
-    master(7),
-    doctor(8),
-    unknown(9);
+    ILLITERACY(0, "文盲"),
+    PRIMARY_SCHOOL(1, "小学"),
+    MIDDLE_SCHOOL(2, "中学"),
+    TECHNICAL_SECONDARY_SCHOOL(3, "中专"),
+    HIGH_SCHOOL(4, "高中"),
+    JUNIOR_COLLEGE(5, "高中"),
+    UNDERGRADUATE(6, "本科"),
+    MASTER(7, "硕士"),
+    DOCTOR(8, "博士"),
+    UNKNOWN(9, "未知");
 
-    private final int value;
+    private final int val;
+    private final String desc;
 
-    EduEnum(int value) {
-        this.value = value;
+    EduEnum(int val, String desc) {
+        this.val = val;
+        this.desc = desc;
     }
 
-    public Integer getValue() {
-        return this.value;
+    public Integer getVal() {
+        return this.val;
+    }
+
+    @JsonValue
+    public String getDesc() {
+        return this.desc;
     }
 
     public static EduEnum getType(int num) {
         for (EduEnum eduEnum : EduEnum.values()) {
-            if (eduEnum.getValue() == num) {
+            if (eduEnum.getVal() == num) {
                 return eduEnum;
             }
         }
-        return unknown;
+        throw new EnumConvertException("学历枚举转换错误");
     }
 }

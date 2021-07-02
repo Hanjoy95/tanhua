@@ -1,6 +1,7 @@
 package com.zhj.tanhua.server.controller;
 
 import com.zhj.tanhua.circle.pojo.po.Comment;
+import com.zhj.tanhua.circle.pojo.po.Moment;
 import com.zhj.tanhua.circle.pojo.to.AlbumTo;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.ResponseResult;
@@ -48,6 +49,19 @@ public class CircleController {
     }
 
     /**
+     * 查询某条动态
+     *
+     * @param momentId 动态ID
+     * @return 返回动态
+     */
+    @Auth
+    @ApiOperation(value = "查询某条动态")
+    @GetMapping("/moment/query")
+    public ResponseResult<Moment> queryMoment(String momentId) {
+        return ResponseResult.ok(circleService.queryMoment(momentId));
+    }
+
+    /**
      * 查询相册
      *
      * @param pageNum 当前页
@@ -64,21 +78,19 @@ public class CircleController {
     }
 
     /**
-     * 查询好友或推荐动态
+     * 查询好友动态
      *
      * @param pageNum 当前页
      * @param pageSize 页大小
-     * @param isQueryRecommend true为查询推荐动态，false为查询好友动态
      * @return 返回好友动态分页结果
      */
     @Auth
-    @ApiOperation(value = "查询好友或推荐动态")
-    @GetMapping("/friend/query")
+    @ApiOperation(value = "查询好友动态")
+    @GetMapping("/feed/query")
     public ResponseResult<PageResult<FeedBo>> queryFeeds(
             @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
-            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
-            @RequestParam("isQueryRecommend") Boolean isQueryRecommend) {
-        return ResponseResult.ok(circleService.queryFeeds(pageNum, pageSize, isQueryRecommend));
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+        return ResponseResult.ok(circleService.queryFeeds(pageNum, pageSize));
     }
 
     /**
@@ -136,7 +148,7 @@ public class CircleController {
     @PostMapping("/comment/query")
     public ResponseResult<PageResult<Comment>> queryComment(
             @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
-            @RequestParam(value = "pageSize", defaultValue = "1") Integer pageSize,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
             @RequestBody CommentVo commentVo) {
         return ResponseResult.ok(circleService.queryComment(commentVo.getMomentId(), commentVo.getCommentId(),
                                                             pageNum, pageSize));
@@ -184,7 +196,7 @@ public class CircleController {
     @GetMapping("/user/love/query")
     public ResponseResult<PageResult<UserInfoTo>> queryLove(
             @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
-            @RequestParam(value = "pageSize", defaultValue = "1") Integer pageSize,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
             @RequestParam("isLove") Boolean isLove) {
         return ResponseResult.ok(circleService.queryLove(pageNum, pageSize, isLove));
     }

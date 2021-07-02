@@ -1,6 +1,6 @@
 package com.zhj.tanhua.common.exception;
 
-import com.zhj.tanhua.common.result.ResponseStatus;
+import com.zhj.tanhua.common.enums.ResponseStatus;
 
 /**
  * @author huanjie.zhuang
@@ -11,22 +11,22 @@ public class BaseException extends RuntimeException {
     private ResponseStatus status;
 
     public BaseException() {
-        this.status = ResponseStatus.SERVER_ERROR;
+        this.status = ResponseStatus.INTERNAL_SERVER_ERROR;
     }
 
     public BaseException(String message) {
         super(message);
-        this.status = ResponseStatus.SERVER_ERROR;
+        this.status = ResponseStatus.INTERNAL_SERVER_ERROR;
     }
 
     public BaseException(Throwable cause) {
         super(cause);
-        this.status = ResponseStatus.SERVER_ERROR;
+        this.status = ResponseStatus.INTERNAL_SERVER_ERROR;
     }
 
     public BaseException(String message, Throwable cause) {
         super(message, cause);
-        this.status = ResponseStatus.SERVER_ERROR;
+        this.status = ResponseStatus.INTERNAL_SERVER_ERROR;
     }
 
     public BaseException(ResponseStatus status, String message) {

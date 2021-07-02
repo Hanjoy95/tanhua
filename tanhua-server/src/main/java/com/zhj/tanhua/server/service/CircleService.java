@@ -6,8 +6,10 @@ import com.zhj.tanhua.circle.api.CircleApi;
 import com.zhj.tanhua.circle.enums.SeeTypeEnum;
 import com.zhj.tanhua.circle.pojo.dto.MomentDto;
 import com.zhj.tanhua.circle.pojo.po.Comment;
+import com.zhj.tanhua.circle.pojo.po.Moment;
 import com.zhj.tanhua.circle.pojo.to.AlbumTo;
 import com.zhj.tanhua.circle.pojo.to.FeedTo;
+import com.zhj.tanhua.common.constant.ThConstant;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.UploadFileResult;
 import com.zhj.tanhua.server.pojo.bo.circle.FeedBo;
@@ -42,7 +44,7 @@ public class CircleService {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
-    @DubboReference(version = "1.0", url = "dubbo://127.0.0.1:19300")
+    @DubboReference(version = "1.0", url = ThConstant.CIRCLE_URL)
     CircleApi circleApi;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -103,6 +105,16 @@ public class CircleService {
     }
 
     /**
+     * 查询某条动态
+     *
+     * @param momentId 动态ID
+     * @return 返回动态
+     */
+    public Moment queryMoment(String momentId) {
+        return circleApi.queryMoment(momentId);
+    }
+
+    /**
      * 查询相册
      *
      * @param pageNum 当前页
@@ -114,18 +126,17 @@ public class CircleService {
     }
 
     /**
-     * 查询好友或推荐动态
+     * 查询好友动态
      *
      * @param pageNum 当前页
      * @param pageSize 页大小
      * @return 返回好友动态分页结果
      */
-    public PageResult<FeedBo> queryFeeds(Integer pageNum, Integer pageSize, Boolean isQueryRecommend) {
+    public PageResult<FeedBo> queryFeeds(Integer pageNum, Integer pageSize) {
 
-        PageResult<FeedTo> pageResult = circleApi.queryFeeds(
-                isQueryRecommend ? null : UserThreadLocal.get().getId(), pageNum, pageSize);
+        PageResult<FeedTo> pageResult = circleApi.queryFeeds(UserThreadLocal.get().getId(), pageNum, pageSize);
 
-        // 没有查询到好友或推荐动态
+        // 没有查询到好友动态
         if (null == pageResult.getData()) {
             log.info("not found the friend's feed, userId:{}", UserThreadLocal.get().getId());
             return PageResult.<FeedBo>builder().total(0L).pageNum((long) pageNum)

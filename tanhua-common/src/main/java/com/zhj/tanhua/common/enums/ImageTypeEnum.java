@@ -1,5 +1,7 @@
 package com.zhj.tanhua.common.enums;
 
+import com.zhj.tanhua.common.exception.EnumConvertException;
+
 /**
  * 图片文件类型枚举
  *
@@ -12,7 +14,7 @@ public enum ImageTypeEnum {
     JPEG(".jpeg"),
     PNG(".png"),
     GIF(".gif"),
-    UNKNOWN("unknown");;
+    UNKNOWN("unknown");
 
     private String type;
 
@@ -26,7 +28,7 @@ public enum ImageTypeEnum {
 
     public static ImageTypeEnum getType(String type) {
         for (ImageTypeEnum imageTypeEnum : ImageTypeEnum.values()) {
-            if (imageTypeEnum.getType() == type) {
+            if (imageTypeEnum.getType().equals(type)) {
                 return imageTypeEnum;
             }
         }

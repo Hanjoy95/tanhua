@@ -1,5 +1,8 @@
 package com.zhj.tanhua.user.enums;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+import com.zhj.tanhua.common.exception.EnumConvertException;
+
 /**
  * 性别枚举
  *
@@ -7,26 +10,33 @@ package com.zhj.tanhua.user.enums;
  * @date 2021/6/2
  */
 public enum SexEnum {
-    man(0),
-    women(1),
-    unknown(2);
+    MAN(0, "男"),
+    WOMAN(1, "女"),
+    UNKNOWN(2, "未知");
 
-    private final int value;
+    private final int val;
+    private final String desc;
 
-    SexEnum(int value) {
-        this.value = value;
+    SexEnum(int val, String msg) {
+        this.val = val;
+        this.desc = msg;
     }
 
-    public Integer getValue() {
-        return this.value;
+    public Integer getVal() {
+        return this.val;
+    }
+
+    @JsonValue
+    public String getDesc() {
+        return this.desc;
     }
 
     public static SexEnum getType(int num) {
         for (SexEnum sexEnum : SexEnum.values()) {
-            if (sexEnum.getValue() == num) {
+            if (sexEnum.getVal() == num) {
                 return sexEnum;
             }
         }
-        return unknown;
+        throw new EnumConvertException("性别枚举转换错误");
     }
 }

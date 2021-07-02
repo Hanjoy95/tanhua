@@ -17,14 +17,10 @@ public class RecommendUserVo {
     private Integer pageNum = 1;
     @ApiModelProperty(value = "页大小, 默认为10")
     private Integer pageSize = 10;
-    @ApiModelProperty(value = "性别, 填man或woman")
+    @ApiModelProperty(value = "性别")
     private SexEnum sex;
-    @ApiModelProperty(value = "最近登录时间", hidden = true)
-    private String lastLogin;
     @ApiModelProperty(value = "年龄")
     private Integer age;
     @ApiModelProperty(value = "居住城市")
     private String city;
-    @ApiModelProperty(value = "学历")
-    private String edu;
 }

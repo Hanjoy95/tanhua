@@ -13,7 +13,7 @@ import java.util.List;
  */
 @ApiModel("今日佳人")
 @Data
-public class TodayBestBo {
+public class RecommendUserBo {
 
     @ApiModelProperty(value = "用户ID")
     private Long userId;

@@ -26,7 +26,6 @@ public class UserInfoTo implements Serializable {
     private String school;
     private String city;
     private String birthday;
-    private String coverPic;
     private String industry;
     private String income;
     private StatusEnum status;
