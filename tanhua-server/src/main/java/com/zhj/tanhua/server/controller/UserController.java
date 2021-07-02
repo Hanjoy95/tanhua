@@ -36,7 +36,7 @@ public class UserController {
      * @param checkCode 验证码
      * @return 返回用户信息
      */
-    @ApiOperation("登录")
+    @ApiOperation("验证码登录")
     @GetMapping("/login/checkCode")
     public ResponseResult<UserTo> loginWithCheckCode(@RequestParam("phone") String phone,
                                                      @RequestParam("checkCode") String checkCode){
@@ -54,7 +54,7 @@ public class UserController {
      * @param password 密码
      * @return 返回用户信息
      */
-    @ApiOperation("登录")
+    @ApiOperation("密码登录")
     @GetMapping("/login/password")
     public ResponseResult<UserTo> loginWithPassword(@RequestParam("phone") String phone,
                                                     @RequestParam("password") String password){

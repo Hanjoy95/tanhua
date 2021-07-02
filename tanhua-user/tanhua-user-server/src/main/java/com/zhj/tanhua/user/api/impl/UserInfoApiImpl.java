@@ -96,9 +96,9 @@ public class UserInfoApiImpl implements UserInfoApi {
         UserInfo userInfo = new UserInfo();
         BeanUtils.copyProperties(userInfoDto, userInfo);
         userInfo.setTags(StringUtils.join(userInfoDto.getTags().toArray(), ThConstant.SPOT));
-        userInfo.setSex(userInfoDto.getSex().getValue());
-        userInfo.setEdu(userInfoDto.getEdu().getValue());
-        userInfo.setStatus(userInfoDto.getStatus().getValue());
+        userInfo.setSex(userInfoDto.getSex().getVal());
+        userInfo.setEdu(userInfoDto.getEdu().getVal());
+        userInfo.setStatus(userInfoDto.getStatus().getVal());
 
         try {
             userInfoDao.insert(userInfo);

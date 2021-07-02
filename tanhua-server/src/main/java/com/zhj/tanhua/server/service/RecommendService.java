@@ -1,5 +1,6 @@
 package com.zhj.tanhua.server.service;
 
+import com.zhj.tanhua.common.constant.ThConstant;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.recommend.api.RecommendUserApi;
 import com.zhj.tanhua.recommend.pojo.po.RecommendUser;
@@ -29,7 +30,7 @@ public class RecommendService {
     @Autowired
     private UserService userService;
 
-    @DubboReference(version = "1.0", url = "dubbo://127.0.0.1:19200")
+    @DubboReference(version = "1.0", url = ThConstant.RECOMMEND_URL)
     RecommendUserApi recommendUserApi;
 
     /**
@@ -78,7 +79,7 @@ public class RecommendService {
 
         // 查询推荐用户的详细信息
         List<UserInfoTo> userInfoTos = userService.getUserInfos(new ArrayList<>(recommendUserMap.keySet()),
-                null == recommendUserVo.getSex() ? null : recommendUserVo.getSex().getValue(),
+                null == recommendUserVo.getSex() ? null : recommendUserVo.getSex().getVal(),
                 recommendUserVo.getAge(), recommendUserVo.getCity());
 
         // 构建推荐用户列表

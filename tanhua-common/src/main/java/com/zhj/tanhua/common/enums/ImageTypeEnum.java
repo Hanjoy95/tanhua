@@ -14,7 +14,7 @@ public enum ImageTypeEnum {
     JPEG(".jpeg"),
     PNG(".png"),
     GIF(".gif"),
-    UNKNOWN("unknown");;
+    UNKNOWN("unknown");
 
     private String type;
 
@@ -28,10 +28,10 @@ public enum ImageTypeEnum {
 
     public static ImageTypeEnum getType(String type) {
         for (ImageTypeEnum imageTypeEnum : ImageTypeEnum.values()) {
-            if (imageTypeEnum.getType() == type) {
+            if (imageTypeEnum.getType().equals(type)) {
                 return imageTypeEnum;
             }
         }
-        throw new EnumConvertException("图片类型枚举转换错误");
+        return UNKNOWN;
     }
 }

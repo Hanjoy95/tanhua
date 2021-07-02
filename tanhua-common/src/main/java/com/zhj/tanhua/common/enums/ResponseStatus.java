@@ -1,4 +1,4 @@
-package com.zhj.tanhua.common.result;
+package com.zhj.tanhua.common.enums;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.zhj.tanhua.common.exception.EnumConvertException;

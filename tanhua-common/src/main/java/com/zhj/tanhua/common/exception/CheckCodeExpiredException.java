@@ -1,6 +1,6 @@
 package com.zhj.tanhua.common.exception;
 
-import com.zhj.tanhua.common.result.ResponseStatus;
+import com.zhj.tanhua.common.enums.ResponseStatus;
 
 /**
  * @author huanjie.zhuang

@@ -28,6 +28,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                                  "/tanhua/recommend/todayBest",
                                  "/tanhua/recommend/users");
         registry.addInterceptor(tokenInterceptor)
-                .addPathPatterns("/**");
+                .addPathPatterns("/**")
+                .excludePathPatterns("/doc.html**");
     }
 }

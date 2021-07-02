@@ -38,8 +38,6 @@ public class UserInfoDto implements Serializable {
     private String city;
     @ApiModelProperty(value = "生日")
     private String birthday;
-    @ApiModelProperty(value = "封面图片", hidden = true)
-    private String coverPic;
     @ApiModelProperty(value = "行业")
     private String industry;
     @ApiModelProperty(value = "收入")

@@ -1,5 +1,6 @@
 package com.zhj.tanhua.server.service;
 
+import com.zhj.tanhua.common.constant.ThConstant;
 import com.zhj.tanhua.server.web.threadlocal.UserThreadLocal;
 import com.zhj.tanhua.user.api.UserInfoApi;
 import com.zhj.tanhua.user.pojo.dto.UserInfoDto;
@@ -22,9 +23,9 @@ import java.util.List;
 @Service
 public class UserService {
 
-    @DubboReference(version = "1.0")
+    @DubboReference(version = "1.0", url = ThConstant.USER_URL)
     UserApi userApi;
-    @DubboReference(version = "1.0")
+    @DubboReference(version = "1.0", url = ThConstant.USER_URL)
     UserInfoApi userInfoApi;
 
     /**

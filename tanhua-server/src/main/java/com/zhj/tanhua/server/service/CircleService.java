@@ -9,6 +9,7 @@ import com.zhj.tanhua.circle.pojo.po.Comment;
 import com.zhj.tanhua.circle.pojo.po.Moment;
 import com.zhj.tanhua.circle.pojo.to.AlbumTo;
 import com.zhj.tanhua.circle.pojo.to.FeedTo;
+import com.zhj.tanhua.common.constant.ThConstant;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.UploadFileResult;
 import com.zhj.tanhua.server.pojo.bo.circle.FeedBo;
@@ -43,7 +44,7 @@ public class CircleService {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
-    @DubboReference(version = "1.0", url = "dubbo://127.0.0.1:19300")
+    @DubboReference(version = "1.0", url = ThConstant.CIRCLE_URL)
     CircleApi circleApi;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();

@@ -1,6 +1,7 @@
 package com.zhj.tanhua.common.result;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.zhj.tanhua.common.enums.ResponseStatus;
 import com.zhj.tanhua.common.exception.BaseException;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
