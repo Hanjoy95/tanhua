@@ -30,7 +30,7 @@ public class RecommendUserApiImpl implements RecommendUserApi {
      * 获取最佳推荐用户
      *
      * @param userId 用户ID
-     * @return RecommendUser
+     * @return 返回推荐用户
      */
     @Override
     public RecommendUser getBestRecommendUser(Long userId) {
@@ -52,7 +52,7 @@ public class RecommendUserApiImpl implements RecommendUserApi {
      * @param userId 用户ID
      * @param pageNum 当前页
      * @param pageSize 页大小
-     * @return PageResult<RecommendUser>
+     * @return 返回推荐用户分页结果
      */
     @Override
     public PageResult<RecommendUser> getRecommendUsers(Long userId, Integer pageNum, Integer pageSize) {

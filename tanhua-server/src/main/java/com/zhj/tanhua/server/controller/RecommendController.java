@@ -5,7 +5,7 @@ import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.ResponseResult;
 import com.zhj.tanhua.server.service.RecommendService;
 import com.zhj.tanhua.server.pojo.vo.recommend.RecommendUserVo;
-import com.zhj.tanhua.server.pojo.bo.recommend.TodayBestBo;
+import com.zhj.tanhua.server.pojo.bo.recommend.RecommendUserBo;
 import com.zhj.tanhua.server.web.annotation.Auth;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -29,12 +29,12 @@ public class RecommendController {
     /**
      * 推荐今日佳人
      *
-     * @return ResponseResult<TodayBestBo>
+     * @return 返回今日佳人信息
      */
     @ApiOperation("推荐今日佳人")
     @GetMapping("todayBest")
     @Auth
-    public ResponseResult<TodayBestBo> getTodayBest() {
+    public ResponseResult<RecommendUserBo> getTodayBest() {
 
         try {
             return ResponseResult.ok(recommendService.getTodayBest());
@@ -47,12 +47,12 @@ public class RecommendController {
      * 推荐用户
      *
      * @param recommendUserVo  推荐用户参数
-     * @return ResponseResult<PageResult<TodayBestBo>>
+     * @return 返回推荐用户分页结果
      */
     @ApiOperation("推荐用户")
     @PostMapping("users")
     @Auth
-    public ResponseResult<PageResult<TodayBestBo>> getRecommendUsers(@RequestBody RecommendUserVo recommendUserVo) {
+    public ResponseResult<PageResult<RecommendUserBo>> getRecommendUsers(@RequestBody RecommendUserVo recommendUserVo) {
         try {
             return ResponseResult.ok(recommendService.getRecommendUsers(recommendUserVo));
         } catch (BaseException e) {

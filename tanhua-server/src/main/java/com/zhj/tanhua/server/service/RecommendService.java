@@ -5,7 +5,7 @@ import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.recommend.api.RecommendUserApi;
 import com.zhj.tanhua.recommend.pojo.po.RecommendUser;
 import com.zhj.tanhua.server.pojo.vo.recommend.RecommendUserVo;
-import com.zhj.tanhua.server.pojo.bo.recommend.TodayBestBo;
+import com.zhj.tanhua.server.pojo.bo.recommend.RecommendUserBo;
 import com.zhj.tanhua.server.web.threadlocal.UserThreadLocal;
 import com.zhj.tanhua.user.pojo.po.User;
 import com.zhj.tanhua.user.pojo.to.UserInfoTo;
@@ -36,10 +36,10 @@ public class RecommendService {
     /**
      * 获取今日佳人
      *
-     * @return TodayBestBo
+     * @return 返回今日佳人信息
      */
     @SneakyThrows
-    public TodayBestBo getTodayBest() {
+    public RecommendUserBo getTodayBest() {
 
         // 获取当前登录用户
         User user = UserThreadLocal.get();
@@ -51,7 +51,7 @@ public class RecommendService {
         UserInfoTo userInfo = userService.getUserInfo(recommendUser.getUserId());
 
         // 构建今日佳人
-        TodayBestBo todayBest = new TodayBestBo();
+        RecommendUserBo todayBest = new RecommendUserBo();
         BeanUtils.copyProperties(userInfo, todayBest);
         todayBest.setUserId(recommendUser.getUserId());
         todayBest.setFate(recommendUser.getFate().intValue());
@@ -63,10 +63,10 @@ public class RecommendService {
      * 获取推荐用户列表
      *
      * @param recommendUserVo  获取推荐用户列表参数
-     * @return PageResult<TodayBestBo>
+     * @return 返回推荐用户分页结果
      */
     @SneakyThrows
-    public PageResult<TodayBestBo> getRecommendUsers(RecommendUserVo recommendUserVo) {
+    public PageResult<RecommendUserBo> getRecommendUsers(RecommendUserVo recommendUserVo) {
 
         // 获取当前登录用户
         User user = UserThreadLocal.get();
@@ -83,22 +83,22 @@ public class RecommendService {
                 recommendUserVo.getAge(), recommendUserVo.getCity());
 
         // 构建推荐用户列表
-        List<TodayBestBo> todayBests = new ArrayList<>();
+        List<RecommendUserBo> RecommendUserBos = new ArrayList<>();
         for (UserInfoTo userInfoTo : userInfoTos) {
-            TodayBestBo todayBest = new TodayBestBo();
+            RecommendUserBo todayBest = new RecommendUserBo();
             BeanUtils.copyProperties(userInfoTo, todayBest);
             todayBest.setFate(recommendUserMap.get(userInfoTo.getUserId()).intValue());
-            todayBests.add(todayBest);
+            RecommendUserBos.add(todayBest);
         }
 
         // 对结果集做排序，按照缘分值倒序排序
-        todayBests.sort((t1, t2) -> t2.getFate() - t1.getFate());
+        RecommendUserBos.sort((t1, t2) -> t2.getFate() - t1.getFate());
 
-        return PageResult.<TodayBestBo>builder()
-                .total((long) todayBests.size())
+        return PageResult.<RecommendUserBo>builder()
+                .total((long) RecommendUserBos.size())
                 .pageNum((long) recommendUserVo.getPageNum())
                 .pageSize((long) recommendUserVo.getPageSize())
-                .hasNext((long) recommendUserVo.getPageNum() * recommendUserVo.getPageSize() < todayBests.size())
-                .data(todayBests).build();
+                .hasNext((long) recommendUserVo.getPageNum() * recommendUserVo.getPageSize() < RecommendUserBos.size())
+                .data(RecommendUserBos).build();
     }
 }
