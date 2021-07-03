@@ -52,7 +52,8 @@ public class RecommendController {
     @ApiOperation("推荐用户")
     @PostMapping("users")
     @Auth
-    public ResponseResult<PageResult<RecommendUserBo>> getRecommendUsers(@RequestBody RecommendUserVo recommendUserVo) {
+    public ResponseResult<PageResult<RecommendUserBo>> getRecommendUsers(
+            @RequestBody RecommendUserVo recommendUserVo) {
         try {
             return ResponseResult.ok(recommendService.getRecommendUsers(recommendUserVo));
         } catch (BaseException e) {

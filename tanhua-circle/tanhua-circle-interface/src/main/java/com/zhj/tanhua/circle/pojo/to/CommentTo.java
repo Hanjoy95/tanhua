@@ -14,5 +14,6 @@ public class CommentTo {
     private Long userId;
     private String content;
     private String parentId;
+    private Long subCommentNum;
     private Long created;
 }

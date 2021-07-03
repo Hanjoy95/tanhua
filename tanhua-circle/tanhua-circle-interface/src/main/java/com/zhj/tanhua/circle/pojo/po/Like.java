@@ -24,12 +24,12 @@ public class Like {
     /**
      * 点赞人ID
      */
-    private Long likerId;
+    private Long liker;
     /**
      * 被点赞人ID
      */
     @Indexed
-    private Long beLikerId;
+    private Long beLiked;
     /**
      * 动态ID
      */

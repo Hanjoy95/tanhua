@@ -1,13 +1,13 @@
 package com.zhj.tanhua.server.controller;
 
-import com.zhj.tanhua.circle.pojo.po.Comment;
-import com.zhj.tanhua.circle.pojo.po.Moment;
-import com.zhj.tanhua.circle.pojo.to.AlbumTo;
+import com.zhj.tanhua.circle.enums.QueryTypeEnum;
+import com.zhj.tanhua.circle.pojo.to.CommentTo;
+import com.zhj.tanhua.circle.pojo.to.MomentTo;
+import com.zhj.tanhua.common.exception.BaseException;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.ResponseResult;
+import com.zhj.tanhua.server.pojo.bo.circle.*;
 import com.zhj.tanhua.server.pojo.vo.circle.CommentVo;
-import com.zhj.tanhua.server.pojo.bo.circle.FeedBo;
-import com.zhj.tanhua.server.pojo.bo.circle.MomentBo;
 import com.zhj.tanhua.server.pojo.vo.circle.MomentVo;
 import com.zhj.tanhua.server.service.CircleService;
 import com.zhj.tanhua.server.web.annotation.Auth;
@@ -43,9 +43,12 @@ public class CircleController {
     @ApiOperation(value = "发布动态")
     @PostMapping("/moment/publish")
     public ResponseResult<MomentBo> publishMoment(@RequestBody MomentVo momentVo) {
-
-        MomentBo result = circleService.addMoment(momentVo);
-        return null == result.getMomentId() ? ResponseResult.ok(result) : ResponseResult.fail(result);
+        try {
+            MomentBo result = circleService.addMoment(momentVo);
+            return null == result.getMomentId() ? ResponseResult.ok(result) : ResponseResult.fail(result);
+        } catch (BaseException e) {
+            return ResponseResult.fail(e);
+        }
     }
 
     /**
@@ -57,8 +60,12 @@ public class CircleController {
     @Auth
     @ApiOperation(value = "查询某条动态")
     @GetMapping("/moment/query")
-    public ResponseResult<Moment> queryMoment(String momentId) {
-        return ResponseResult.ok(circleService.queryMoment(momentId));
+    public ResponseResult<MomentTo> queryMoment(String momentId) {
+        try {
+            return ResponseResult.ok(circleService.queryMoment(momentId));
+        } catch (BaseException e) {
+            return ResponseResult.fail(e);
+        }
     }
 
     /**
@@ -69,9 +76,9 @@ public class CircleController {
      * @return 返回相册的分页结果
      */
     @Auth
-    @ApiOperation(value = "查询相册")
+    @ApiOperation(value = "查询我的相册")
     @PostMapping("/album/query")
-    public ResponseResult<PageResult<AlbumTo>> queryAlbums(
+    public ResponseResult<PageResult<MomentTo>> queryAlbums(
             @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
             @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
         return ResponseResult.ok(circleService.queryAlbums(pageNum, pageSize));
@@ -94,19 +101,73 @@ public class CircleController {
     }
 
     /**
-     * 点赞或取消点赞
+     * 点赞
      *
      * @param momentId 动态ID
-     * @param isLike true为点赞，false为取消点赞
      * @return 返回成功响应
      */
     @Auth
-    @ApiOperation(value = "点赞或取消点赞")
+    @ApiOperation(value = "点赞")
     @GetMapping("/moment/like")
-    public ResponseResult<Void> likeOrUnlike(@RequestParam("momentId") String momentId,
-                                             @RequestParam("isLike") Boolean isLike) {
-        circleService.likeOrUnlike(momentId, isLike);
+    public ResponseResult<Void> like(@RequestParam("momentId") String momentId) {
+        try {
+            circleService.likeOrUnlike(momentId, true);
+        } catch (BaseException e) {
+            return ResponseResult.fail(e);
+        }
         return ResponseResult.ok();
+    }
+
+    /**
+     * 取消点赞
+     *
+     * @param momentId 动态ID
+     * @return 返回成功响应
+     */
+    @Auth
+    @ApiOperation(value = "取消点赞")
+    @GetMapping("/moment/unlike")
+    public ResponseResult<Void> unlike(@RequestParam("momentId") String momentId) {
+        try {
+            circleService.likeOrUnlike(momentId, false);
+        } catch (BaseException e) {
+            return ResponseResult.fail(e);
+        }
+        return ResponseResult.ok();
+    }
+
+    /**
+     * 查询谁点赞我的动态
+     *
+     * @param pageNum 当前页
+     * @param pageSize 页大小
+     * @return 返回点赞分页结果
+     */
+    @Auth
+    @ApiOperation(value = "查询点赞消息")
+    @GetMapping("/like/message")
+    public ResponseResult<PageResult<LikeBo>> queryBeLikes(
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+        return ResponseResult.ok(circleService.queryLikeWithType(
+                QueryTypeEnum.QUERY_MY_MESSAGE, pageNum, pageSize));
+    }
+
+    /**
+     * 查询我点赞谁的动态
+     *
+     * @param pageNum 当前页
+     * @param pageSize 页大小
+     * @return 返回点赞分页结果
+     */
+    @Auth
+    @ApiOperation(value = "查询我的点赞")
+    @GetMapping("/like/my")
+    public ResponseResult<PageResult<LikeBo>> queryLikes(
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+        return ResponseResult.ok(circleService.queryLikeWithType(
+                QueryTypeEnum.QUERY_MY_ACTION, pageNum, pageSize));
     }
 
     /**
@@ -116,11 +177,15 @@ public class CircleController {
      * @return 返回评论ID
      */
     @Auth
-    @ApiOperation(value = "评论某个动态或评论")
+    @ApiOperation(value = "发表评论")
     @PostMapping("/comment/add")
     public ResponseResult<String> addComment(@RequestBody CommentVo commentVo) {
-        return ResponseResult.ok(circleService.addComment(commentVo.getMomentId(),
-                commentVo.getCommentId(), commentVo.getContent()));
+        try {
+            return ResponseResult.ok(circleService.addComment(commentVo.getMomentId(),
+                    commentVo.getCommentId(), commentVo.getContent()));
+        } catch (BaseException e) {
+            return ResponseResult.fail(e);
+        }
     }
 
     /**
@@ -144,14 +209,49 @@ public class CircleController {
      * @param commentVo 评论请求体
      * @return 返回评论分页结果
      */
+    @Auth
     @ApiOperation(value = "查询评论")
     @PostMapping("/comment/query")
-    public ResponseResult<PageResult<Comment>> queryComment(
+    public ResponseResult<PageResult<CommentTo>> queryComment(
             @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
             @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
             @RequestBody CommentVo commentVo) {
-        return ResponseResult.ok(circleService.queryComment(commentVo.getMomentId(), commentVo.getCommentId(),
-                                                            pageNum, pageSize));
+        return ResponseResult.ok(circleService.queryComment(commentVo.getMomentId(),
+                commentVo.getCommentId(), pageNum, pageSize));
+    }
+
+    /**
+     * 查询谁评论我
+     *
+     * @param pageNum 当前页
+     * @param pageSize 页大小
+     * @return 返回评论分页结果
+     */
+    @Auth
+    @ApiOperation(value = "查询评论消息")
+    @PostMapping("/comment/message")
+    public ResponseResult<PageResult<CommentBo>> queryWhoCommentMe(
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+        return ResponseResult.ok(circleService.queryCommentsWithType(
+                QueryTypeEnum.QUERY_MY_MESSAGE, pageNum, pageSize));
+    }
+
+    /**
+     * 查询我评论谁
+     *
+     * @param pageNum 当前页
+     * @param pageSize 页大小
+     * @return 返回评论分页结果
+     */
+    @Auth
+    @ApiOperation(value = "查询我的评论")
+    @PostMapping("/comment/my")
+    public ResponseResult<PageResult<CommentBo>> queryMeCommentWho(
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+        return ResponseResult.ok(circleService.queryCommentsWithType(
+                QueryTypeEnum.QUERY_MY_ACTION, pageNum, pageSize));
     }
 
     /**
@@ -164,7 +264,11 @@ public class CircleController {
     @ApiOperation(value = "喜欢某个用户")
     @GetMapping("/user/love")
     public ResponseResult<UserInfoTo> addLove(Long userId) {
-        return ResponseResult.ok(circleService.addLove(userId));
+        try {
+            return ResponseResult.ok(circleService.addLove(userId));
+        } catch (BaseException e) {
+            return ResponseResult.fail(e);
+        }
     }
 
     /**
@@ -179,25 +283,43 @@ public class CircleController {
     @GetMapping("/user/unlove")
     public ResponseResult<Void> deleteLove(@RequestParam("loveUserId") Long loveUserId,
                                            @RequestParam("belovedUserId") Long belovedUserId) {
-        circleService.deleteLove(loveUserId, belovedUserId);
+        try {
+            circleService.deleteLove(loveUserId, belovedUserId);
+        } catch (BaseException e) {
+            return ResponseResult.fail(e);
+        }
         return ResponseResult.ok();
     }
 
     /**
-     * 查询我喜欢或喜欢我的用户
+     * 查询谁喜欢我
      *
      * @param pageNum 当前页
      * @param pageSize 页大小
-     * @param isLove true为查询我喜欢的用户，false为查询喜欢我的用户
-     * @return 返回用户信息分页结果
+     * @return 返回喜欢信息分页结果
      */
     @Auth
-    @ApiOperation("查询我喜欢或喜欢我的用户")
-    @GetMapping("/user/love/query")
-    public ResponseResult<PageResult<UserInfoTo>> queryLove(
+    @ApiOperation("查询喜欢消息")
+    @GetMapping("/love/message")
+    public ResponseResult<PageResult<LoveBo>> queryWhoLoveMe(
             @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
-            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
-            @RequestParam("isLove") Boolean isLove) {
-        return ResponseResult.ok(circleService.queryLove(pageNum, pageSize, isLove));
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+        return ResponseResult.ok(circleService.queryLove(QueryTypeEnum.QUERY_MY_MESSAGE, pageNum, pageSize));
+    }
+
+    /**
+     * 查询我喜欢谁
+     *
+     * @param pageNum 当前页
+     * @param pageSize 页大小
+     * @return 返回喜欢信息分页结果
+     */
+    @Auth
+    @ApiOperation("查询我的喜欢")
+    @GetMapping("/love/my")
+    public ResponseResult<PageResult<LoveBo>> queryMeLoveWho(
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+        return ResponseResult.ok(circleService.queryLove(QueryTypeEnum.QUERY_MY_ACTION, pageNum, pageSize));
     }
 }

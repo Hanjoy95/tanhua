@@ -15,7 +15,7 @@ import java.util.List;
  * @date 2021/6/19
  */
 @Data
-@ApiModel("好友或推荐动态")
+@ApiModel("好友动态")
 public class FeedBo {
 
     @ApiModelProperty(value = "好友动态ID")

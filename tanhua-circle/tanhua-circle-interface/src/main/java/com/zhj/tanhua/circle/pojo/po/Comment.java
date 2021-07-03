@@ -31,7 +31,13 @@ public class Comment implements Serializable {
     /**
      * 评论人ID
      */
-    private Long userId;
+    @Indexed
+    private Long commenter;
+    /**
+     * 被评论人ID
+     */
+    @Indexed
+    private Long commentedBy;
     /**
      * 评论内容
      */

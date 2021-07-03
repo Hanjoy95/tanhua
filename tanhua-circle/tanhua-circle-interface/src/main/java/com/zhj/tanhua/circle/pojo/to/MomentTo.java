@@ -1,5 +1,6 @@
 package com.zhj.tanhua.circle.pojo.to;
 
+import com.zhj.tanhua.circle.enums.SeeTypeEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -10,13 +11,14 @@ import java.util.List;
  * @date 2021/6/26
  */
 @Data
-public class AlbumTo implements Serializable {
+public class MomentTo implements Serializable {
 
     private String momentId;
+    private Long userId;
     private String text;
     private List<String> medias;
 
-    private Integer seeType;
+    private SeeTypeEnum seeType;
     private List<Long> seeList;
     private List<Long> notSeeList;
 

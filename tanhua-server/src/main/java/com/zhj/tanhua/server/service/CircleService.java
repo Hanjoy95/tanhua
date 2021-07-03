@@ -2,18 +2,22 @@ package com.zhj.tanhua.server.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zhj.tanhua.circle.api.CircleApi;
+import com.zhj.tanhua.circle.api.CommentApi;
+import com.zhj.tanhua.circle.api.LikeApi;
+import com.zhj.tanhua.circle.api.LoveApi;
+import com.zhj.tanhua.circle.api.MomentApi;
+import com.zhj.tanhua.circle.enums.QueryTypeEnum;
 import com.zhj.tanhua.circle.enums.SeeTypeEnum;
 import com.zhj.tanhua.circle.pojo.dto.MomentDto;
-import com.zhj.tanhua.circle.pojo.po.Comment;
-import com.zhj.tanhua.circle.pojo.po.Moment;
-import com.zhj.tanhua.circle.pojo.to.AlbumTo;
+import com.zhj.tanhua.circle.pojo.po.Like;
+import com.zhj.tanhua.circle.pojo.po.Love;
+import com.zhj.tanhua.circle.pojo.to.CommentTo;
+import com.zhj.tanhua.circle.pojo.to.MomentTo;
 import com.zhj.tanhua.circle.pojo.to.FeedTo;
 import com.zhj.tanhua.common.constant.ThConstant;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.UploadFileResult;
-import com.zhj.tanhua.server.pojo.bo.circle.FeedBo;
-import com.zhj.tanhua.server.pojo.bo.circle.MomentBo;
+import com.zhj.tanhua.server.pojo.bo.circle.*;
 import com.zhj.tanhua.server.pojo.vo.circle.MomentVo;
 import com.zhj.tanhua.server.web.threadlocal.UserThreadLocal;
 import com.zhj.tanhua.user.pojo.to.UserInfoTo;
@@ -28,6 +32,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 好友圈模块的服务层
@@ -45,7 +50,13 @@ public class CircleService {
     private RedisTemplate<String, String> redisTemplate;
 
     @DubboReference(version = "1.0", url = ThConstant.CIRCLE_URL)
-    CircleApi circleApi;
+    MomentApi momentApi;
+    @DubboReference(version = "1.0", url = ThConstant.CIRCLE_URL)
+    LikeApi likeApi;
+    @DubboReference(version = "1.0", url = ThConstant.CIRCLE_URL)
+    CommentApi commentApi;
+    @DubboReference(version = "1.0", url = ThConstant.CIRCLE_URL)
+    LoveApi loveApi;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -59,7 +70,7 @@ public class CircleService {
     public MomentBo addMoment(MomentVo momentVo) {
 
         // 文件上传
-        List<UploadFileResult> results = circleApi.uploadFiles(momentVo.getMedias(), momentVo.getFileType());
+        List<UploadFileResult> results = momentApi.uploadFiles(momentVo.getMedias(), momentVo.getFileType());
 
         // 若为重传，获取已上传成功的文件
         List<String> filesHasUpload = new ArrayList<>();
@@ -87,7 +98,7 @@ public class CircleService {
             momentDto.setUserId(UserThreadLocal.get().getId());
             momentDto.setSeeType(SeeTypeEnum.getType(momentVo.getSeeType()));
             momentDto.setMedias(filesHasUpload);
-            momentBo.setMomentId(circleApi.addMoment(momentDto));
+            momentBo.setMomentId(momentApi.addMoment(momentDto));
             log.info("files upload success");
             return momentBo;
         } else {
@@ -110,8 +121,8 @@ public class CircleService {
      * @param momentId 动态ID
      * @return 返回动态
      */
-    public Moment queryMoment(String momentId) {
-        return circleApi.queryMoment(momentId);
+    public MomentTo queryMoment(String momentId) {
+        return momentApi.queryMoment(momentId);
     }
 
     /**
@@ -121,8 +132,8 @@ public class CircleService {
      * @param pageSize 页大小
      * @return 返回相册的分页结果
      */
-    public PageResult<AlbumTo> queryAlbums(Integer pageNum, Integer pageSize) {
-        return circleApi.queryAlbums(UserThreadLocal.get().getId(), pageNum, pageSize);
+    public PageResult<MomentTo> queryAlbums(Integer pageNum, Integer pageSize) {
+        return momentApi.queryAlbums(UserThreadLocal.get().getId(), pageNum, pageSize);
     }
 
     /**
@@ -134,7 +145,7 @@ public class CircleService {
      */
     public PageResult<FeedBo> queryFeeds(Integer pageNum, Integer pageSize) {
 
-        PageResult<FeedTo> pageResult = circleApi.queryFeeds(UserThreadLocal.get().getId(), pageNum, pageSize);
+        PageResult<FeedTo> pageResult = momentApi.queryFeeds(UserThreadLocal.get().getId(), pageNum, pageSize);
 
         // 没有查询到好友动态
         if (null == pageResult.getData()) {
@@ -176,7 +187,48 @@ public class CircleService {
      * @param isLike true为点赞，false为取消点赞
      */
     public void likeOrUnlike(String momentId, Boolean isLike) {
-        circleApi.likeOrUnlike(UserThreadLocal.get().getId(), momentId, isLike);
+        likeApi.likeOrUnlike(UserThreadLocal.get().getId(), momentId, isLike);
+    }
+
+    /**
+     * 查询我的点赞
+     *
+     * @param type 查询类型
+     * @param pageNum 当前页
+     * @param pageSize 页大小
+     * @return 返回点赞分页结果
+     */
+    public PageResult<LikeBo> queryLikeWithType(QueryTypeEnum type, Integer pageNum, Integer pageSize) {
+
+        // 获取点赞列表
+        PageResult<Like> likes = likeApi.queryLikeWithType(type,
+                UserThreadLocal.get().getId(), pageNum, pageSize);
+
+        // 获取用户信息
+        Set<Long> userIds = likes.getData().stream()
+                .map(QueryTypeEnum.QUERY_MY_MESSAGE.equals(type) ? Like::getLiker : Like::getBeLiked)
+                .collect(Collectors.toSet());
+        Map<Long, UserInfoTo> userInfoMap = userService.getUserInfos(
+                new ArrayList<>(userIds), null, null, null)
+                .stream().collect(Collectors.toMap(UserInfoTo::getUserId, userInfo -> userInfo));
+
+        List<LikeBo> likeBos = new ArrayList<>();
+        for (Like like : likes.getData()) {
+            LikeBo likeBo = new LikeBo();
+            BeanUtils.copyProperties(like, likeBo);
+            likeBo.setLikeId(like.getId().toHexString());
+            likeBo.setMomentId(like.getMomentId().toHexString());
+
+            // 设置用户昵称和头像
+            UserInfoTo userInfo = userInfoMap.get(
+                    QueryTypeEnum.QUERY_MY_MESSAGE.equals(type) ? like.getLiker() : like.getBeLiked());
+            likeBo.setNickName(userInfo.getNickName());
+            likeBo.setAvatar(userInfo.getAvatar());
+            likeBos.add(likeBo);
+        }
+
+        return PageResult.<LikeBo>builder().total(likes.getTotal()).pageNum((long)pageNum)
+                .pageSize((long)pageSize).hasNext(likes.getHasNext()).data(likeBos).build();
     }
 
     /**
@@ -188,7 +240,7 @@ public class CircleService {
      * @return 返回评论ID
      */
     public String addComment(String momentId, String commentId, String content) {
-        return circleApi.addComment(UserThreadLocal.get().getId(), momentId, commentId, content);
+        return commentApi.addComment(UserThreadLocal.get().getId(), momentId, commentId, content);
     }
 
     /**
@@ -198,7 +250,7 @@ public class CircleService {
      * @return 返回被删除的评论ID列表
      */
     public List<String> deleteComment(String commentId) {
-        return circleApi.deleteComment(commentId);
+        return commentApi.deleteComment(commentId);
     }
 
     /**
@@ -210,8 +262,46 @@ public class CircleService {
      * @param pageSize 页大小
      * @return 返回评论分页结果
      */
-    public PageResult<Comment> queryComment(String momentId, String commentId, Integer pageNum, Integer pageSize) {
-        return circleApi.queryComment(momentId, commentId, pageNum, pageSize);
+    public PageResult<CommentTo> queryComment(String momentId, String commentId,
+                                              Integer pageNum, Integer pageSize) {
+        return commentApi.queryComment(momentId, commentId, pageNum, pageSize);
+    }
+
+    /**
+     * 查询评论消息
+     *
+     * @param type 查询类型
+     * @param pageNum 当前页
+     * @param pageSize 页大小
+     * @return 返回评论分页结果
+     */
+    public PageResult<CommentBo> queryCommentsWithType(QueryTypeEnum type, Integer pageNum, Integer pageSize) {
+
+        // 获取评论
+        PageResult<CommentTo> comments = commentApi.queryCommentsWithType(
+                type, UserThreadLocal.get().getId(), pageNum, pageSize);
+
+        // 获取用户信息
+        Set<Long> userIds = comments.getData().stream().map(CommentTo::getUserId).collect(Collectors.toSet());
+        Map<Long, UserInfoTo> userInfoMap = userService.getUserInfos(
+                new ArrayList<>(userIds), null, null, null)
+                .stream().collect(Collectors.toMap(UserInfoTo::getUserId, userInfo -> userInfo));
+
+        // 设置评论信息
+        List<CommentBo> commentBos = new ArrayList<>();
+        for (CommentTo comment : comments.getData()) {
+            CommentBo commentBo = new CommentBo();
+            BeanUtils.copyProperties(comment, commentBo);
+
+            // 设置用户昵称和头像
+            UserInfoTo userInfo = userInfoMap.get(comment.getUserId());
+            commentBo.setNickName(userInfo.getNickName());
+            commentBo.setAvatar(userInfo.getAvatar());
+            commentBos.add(commentBo);
+        }
+
+        return PageResult.<CommentBo>builder().total(comments.getTotal()).pageNum((long)pageNum)
+                .pageSize((long)pageSize).hasNext(comments.getHasNext()).data(commentBos).build();
     }
 
     /**
@@ -222,7 +312,7 @@ public class CircleService {
      */
     public UserInfoTo addLove(Long userId) {
 
-        if (circleApi.addLove(UserThreadLocal.get().getId(), userId)) {
+        if (loveApi.addLove(UserThreadLocal.get().getId(), userId)) {
             return userService.getUserInfo(userId);
         }
         return null;
@@ -235,23 +325,46 @@ public class CircleService {
      * @param belovedUserId 评论ID
      */
     public void deleteLove(Long loveUserId, Long belovedUserId) {
-        circleApi.deleteLove(loveUserId, belovedUserId);
+        loveApi.deleteLove(loveUserId, belovedUserId);
     }
 
     /**
-     * 查询我喜欢或喜欢我的用户
+     * 查询我的喜欢消息
      *
+     * @param type 查询类型
      * @param pageNum 当前页
      * @param pageSize 页大小
-     * @param isLove true为查询我喜欢的用户，false为查询喜欢我的用户
-     * @return 返回用户信息分页结果
+     * @return 返回喜欢信息分页结果
      */
-    public PageResult<UserInfoTo> queryLove(Integer pageNum, Integer pageSize, Boolean isLove) {
+    public PageResult<LoveBo> queryLove(QueryTypeEnum type, Integer pageNum, Integer pageSize) {
 
-        PageResult<Long> pageResult = circleApi.queryLove(UserThreadLocal.get().getId(), isLove, pageNum, pageSize);
-        List<UserInfoTo> userInfos = userService.getUserInfos(pageResult.getData(), null, null, null);
+        // 获取喜欢列表
+        PageResult<Love> loves = loveApi.queryLoveWithType(
+                type, UserThreadLocal.get().getId(), pageNum, pageSize);
 
-        return PageResult.<UserInfoTo>builder().total(pageResult.getTotal()).pageNum(pageResult.getPageNum())
-                .pageSize(pageResult.getPageSize()).hasNext(pageResult.getHasNext()).data(userInfos).build();
+        // 获取用户信息
+        Set<Long> userIds = loves.getData().stream()
+                .map(QueryTypeEnum.QUERY_MY_MESSAGE.equals(type) ? Love::getLover : Love::getBeLoved)
+                .collect(Collectors.toSet());
+        Map<Long, UserInfoTo> userInfoMap = userService.getUserInfos(
+                new ArrayList<>(userIds), null, null, null)
+                .stream().collect(Collectors.toMap(UserInfoTo::getUserId, userInfo -> userInfo));
+
+        // 设置喜欢用户信息
+        List<LoveBo> loveBos = new ArrayList<>();
+        for (Love love : loves.getData()) {
+            LoveBo loveBo = new LoveBo();
+            loveBo.setLoveId(love.getId().toHexString());
+            loveBo.setCreated(love.getCreated());
+
+            // 设置用户信息
+            UserInfoTo userInfo = userInfoMap.get(
+                    QueryTypeEnum.QUERY_MY_MESSAGE.equals(type) ? love.getLover() : love.getBeLoved());
+            BeanUtils.copyProperties(userInfo, loveBo);
+            loveBos.add(loveBo);
+        }
+
+        return PageResult.<LoveBo>builder().total(loves.getTotal()).pageNum(loves.getPageNum())
+                .pageSize(loves.getPageSize()).hasNext(loves.getHasNext()).data(loveBos).build();
     }
 }
