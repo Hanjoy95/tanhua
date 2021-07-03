@@ -15,7 +15,7 @@ import java.util.List;
  * @date 2021/6/19
  */
 @Data
-@ApiModel("好友或推荐动态")
+@ApiModel("好友动态")
 public class FeedBo {
 
     @ApiModelProperty(value = "好友动态ID")
@@ -45,7 +45,7 @@ public class FeedBo {
     @ApiModelProperty(value = "头像")
     private String avatar;
     @ApiModelProperty(value = "昵称")
-    private String nickname;
+    private String nickName;
     @ApiModelProperty(value = "性别")
     private SexEnum sex;
     @ApiModelProperty(value = "年龄")

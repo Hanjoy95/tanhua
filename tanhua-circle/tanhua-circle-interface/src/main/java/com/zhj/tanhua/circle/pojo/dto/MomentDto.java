@@ -18,10 +18,8 @@ public class MomentDto implements Serializable {
     private String text;
     private List<String> medias;
     private SeeTypeEnum seeType;
-    private List<Long> seeList = Collections.emptyList();
-    private List<Long> notSeeList = Collections.emptyList();
-    private Long likeNum = 0L;
-    private List<Long> likeUsers = Collections.emptyList();
+    private List<Long> seeList;
+    private List<Long> notSeeList;
     private String longitude;
     private String latitude;
     private String location;

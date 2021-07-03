@@ -1,7 +1,5 @@
 package com.zhj.tanhua.common.enums;
 
-import com.zhj.tanhua.common.exception.EnumConvertException;
-
 /**
  * 图片文件类型枚举
  *

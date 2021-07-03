@@ -27,12 +27,12 @@ public class Love implements Serializable {
      * 用户ID
      */
     @Indexed
-    private Long loverId;
+    private Long lover;
     /**
      * 被喜欢的用户ID
      */
     @Indexed
-    private Long beLoverId;
+    private Long beLoved;
     /**
      * 创建时间
      */

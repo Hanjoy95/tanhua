@@ -1,8 +1,5 @@
 package com.zhj.tanhua.common.enums;
 
-import com.zhj.tanhua.common.exception.EnumConvertException;
-import org.omg.CORBA.UNKNOWN;
-
 /**
  * 视频文件类型枚举
  *

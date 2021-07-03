@@ -23,13 +23,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -140,6 +138,10 @@ public class UserInfoApiImpl implements UserInfoApi {
      */
     @Override
     public List<UserInfoTo> getUserInfos(List<Long> userIds, Integer sex, Integer age, String city) {
+
+        if (CollectionUtils.isEmpty(userIds)) {
+            return Collections.emptyList();
+        }
 
         QueryWrapper<UserInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("user_id", userIds);
