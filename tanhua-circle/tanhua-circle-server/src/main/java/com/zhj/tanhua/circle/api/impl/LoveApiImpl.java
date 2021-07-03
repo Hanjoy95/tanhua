@@ -2,13 +2,13 @@ package com.zhj.tanhua.circle.api.impl;
 
 import com.zhj.tanhua.circle.api.LoveApi;
 import com.zhj.tanhua.circle.enums.QueryTypeEnum;
-import com.zhj.tanhua.circle.pojo.po.Friend;
-import com.zhj.tanhua.circle.pojo.po.Love;
+import com.zhj.tanhua.circle.pojo.po.*;
 import com.zhj.tanhua.common.exception.ResourceHasExistException;
 import com.zhj.tanhua.common.exception.ResourceNotFoundException;
 import com.zhj.tanhua.common.result.PageResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboService;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -16,7 +16,9 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 喜欢dubbo接口实现
@@ -56,8 +58,8 @@ public class LoveApiImpl implements LoveApi {
         mongoTemplate.save(love);
 
         // 匹配成功，写入好友表
-        if (mongoTemplate.exists(Query.query(Criteria.where("loverId").is(beLoved)
-                .and("beLoverId").is(lover)), Love.class)) {
+        if (mongoTemplate.exists(Query.query(Criteria.where("lover").is(beLoved)
+                .and("beLoved").is(lover)), Love.class)) {
 
             Friend friend1 = new Friend();
             friend1.setUserId(beLoved);
@@ -69,6 +71,12 @@ public class LoveApiImpl implements LoveApi {
             friend2.setCreated(System.currentTimeMillis());
             mongoTemplate.save(friend2, Friend.TABLE_NAME_PREFIX + beLoved);
 
+            // 将好友发布的动态写入自己好友动态表中
+            addFeeds(lover, beLoved);
+
+            // 将自己发布的动态写入对方的好友动态表中
+            addFeeds(beLoved, lover);
+
             return true;
         }
 
@@ -76,19 +84,43 @@ public class LoveApiImpl implements LoveApi {
     }
 
     /**
+     * 批量添加好友动态
+     *
+     * @param userId1 用户ID1
+     * @param userId2 用户ID2
+     */
+    private void addFeeds(Long userId1, Long userId2) {
+
+        List<ObjectId> momentIds = mongoTemplate
+                .findAll(Album.class, Album.TABLE_NAME_PREFIX + userId2)
+                .stream().map(Album::getMomentId).collect(Collectors.toList());
+
+        List<Feed> feeds = new ArrayList<>();
+        for (ObjectId momentId : momentIds) {
+            Feed feed = new Feed();
+            feed.setMomentId(momentId);
+            feed.setUserId(userId2);
+            feed.setCreated(System.currentTimeMillis());
+            feeds.add(feed);
+        }
+
+        mongoTemplate.insert(feeds, Feed.TABLE_NAME_PREFIX + userId1);
+    }
+
+    /**
      * 取消喜欢某个用户
      *
-     * @param loverId 用户ID
-     * @param beLoverId 被喜欢的用户ID
+     * @param lover 用户ID
+     * @param beLoved 被喜欢的用户ID
      */
     @Override
-    public void deleteLove(Long loverId, Long beLoverId) {
+    public void deleteLove(Long lover, Long beLoved) {
 
-        Query query = Query.query(Criteria.where("loverId").is(loverId).and("beLoverId").is(beLoverId));
-        if (mongoTemplate.exists(query, Love.class)) {
-            log.error("love not found, loverId: {}, beLoverId: {}", loverId, beLoverId);
+        Query query = Query.query(Criteria.where("lover").is(lover).and("beLoved").is(beLoved));
+        if (!mongoTemplate.exists(query, Love.class)) {
+            log.error("love not found, loverId: {}, beLoverId: {}", lover, beLoved);
             throw new ResourceNotFoundException("love not found, loverId: "
-                    + loverId + ", beLoverId: " + beLoverId);
+                    + lover + ", beLoverId: " + beLoved);
         }
         mongoTemplate.remove(query, Love.class);
     }
@@ -110,7 +142,7 @@ public class LoveApiImpl implements LoveApi {
                 QueryTypeEnum.QUERY_MY_MESSAGE.equals(type) ? "beLoved" : "lover").is(userId));
         long total = mongoTemplate.count(query, Love.class);
         List<Love> loves = mongoTemplate.find(
-                query.with(PageRequest.of(pageNum, pageSize, Sort.by(Sort.Order.desc("created")))),
+                query.with(PageRequest.of(pageNum - 1, pageSize, Sort.by(Sort.Order.desc("created")))),
                 Love.class);
 
         return PageResult.<Love>builder().total(total).pageNum((long)pageNum).pageSize((long)pageSize)

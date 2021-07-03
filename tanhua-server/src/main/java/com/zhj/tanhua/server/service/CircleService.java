@@ -7,7 +7,6 @@ import com.zhj.tanhua.circle.api.LikeApi;
 import com.zhj.tanhua.circle.api.LoveApi;
 import com.zhj.tanhua.circle.api.MomentApi;
 import com.zhj.tanhua.circle.enums.QueryTypeEnum;
-import com.zhj.tanhua.circle.enums.SeeTypeEnum;
 import com.zhj.tanhua.circle.pojo.dto.MomentDto;
 import com.zhj.tanhua.circle.pojo.po.Like;
 import com.zhj.tanhua.circle.pojo.po.Love;
@@ -15,6 +14,7 @@ import com.zhj.tanhua.circle.pojo.to.CommentTo;
 import com.zhj.tanhua.circle.pojo.to.MomentTo;
 import com.zhj.tanhua.circle.pojo.to.FeedTo;
 import com.zhj.tanhua.common.constant.ThConstant;
+import com.zhj.tanhua.common.exception.ParameterInvalidException;
 import com.zhj.tanhua.common.result.PageResult;
 import com.zhj.tanhua.common.result.UploadFileResult;
 import com.zhj.tanhua.server.pojo.bo.circle.*;
@@ -69,26 +69,26 @@ public class CircleService {
     @SneakyThrows
     public MomentBo addMoment(MomentVo momentVo) {
 
-        // 文件上传
-        List<UploadFileResult> results = momentApi.uploadFiles(momentVo.getMedias(), momentVo.getFileType());
+//        // 文件上传
+//        List<UploadFileResult> results = momentApi.uploadFiles(momentVo.getMedias(), momentVo.getFileType());
 
-        // 若为重传，获取已上传成功的文件
+//        // 若为重传，获取已上传成功的文件
         List<String> filesHasUpload = new ArrayList<>();
-        if (momentVo.getIsRePublish()) {
-            filesHasUpload.addAll(MAPPER.readValue(redisTemplate.opsForValue().get("FILES_HAS_UPLOAD_" +
-                    momentVo.getRePublishId()), new TypeReference<List<String>>(){}));
-            log.info("files is re uploading");
-        }
+//        if (momentVo.getIsRePublish()) {
+//            filesHasUpload.addAll(MAPPER.readValue(redisTemplate.opsForValue().get("FILES_HAS_UPLOAD_" +
+//                    momentVo.getRePublishId()), new TypeReference<List<String>>(){}));
+//            log.info("files is re uploading");
+//        }
 
         // 检查是否有上传失败的
         List<UploadFileResult> uploadFailedFiles = new ArrayList<>();
-        for (UploadFileResult result : results) {
-            if (result.getStatus()) {
-                filesHasUpload.add(result.getFileUrl());
-            } else {
-                uploadFailedFiles.add(result);
-            }
-        }
+//        for (UploadFileResult result : results) {
+//            if (result.getStatus()) {
+//                filesHasUpload.add(result.getFileUrl());
+//            } else {
+//                uploadFailedFiles.add(result);
+//            }
+//        }
 
         MomentBo momentBo = new MomentBo();
         if (CollectionUtils.isEmpty(uploadFailedFiles)) {
@@ -96,7 +96,7 @@ public class CircleService {
             MomentDto momentDto = new MomentDto();
             BeanUtils.copyProperties(momentVo, momentDto);
             momentDto.setUserId(UserThreadLocal.get().getId());
-            momentDto.setSeeType(SeeTypeEnum.getType(momentVo.getSeeType()));
+            momentDto.setSeeType(momentVo.getSeeType());
             momentDto.setMedias(filesHasUpload);
             momentBo.setMomentId(momentApi.addMoment(momentDto));
             log.info("files upload success");
@@ -312,7 +312,10 @@ public class CircleService {
      */
     public UserInfoTo addLove(Long userId) {
 
-        if (loveApi.addLove(UserThreadLocal.get().getId(), userId)) {
+        Long lover = UserThreadLocal.get().getId();
+        if (lover.equals(userId)) {
+            throw new ParameterInvalidException("自己喜欢自己，可以啊兄弟");
+        } else if (loveApi.addLove(lover, userId)) {
             return userService.getUserInfo(userId);
         }
         return null;
@@ -321,11 +324,11 @@ public class CircleService {
     /**
      * 取消喜欢某个用户
      *
-     * @param loveUserId 用户ID
-     * @param belovedUserId 评论ID
+     * @param lover 用户ID
+     * @param beLoved 评论ID
      */
-    public void deleteLove(Long loveUserId, Long belovedUserId) {
-        loveApi.deleteLove(loveUserId, belovedUserId);
+    public void deleteLove(Long lover, Long beLoved) {
+        loveApi.deleteLove(lover, beLoved);
     }
 
     /**

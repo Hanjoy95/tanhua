@@ -24,10 +24,10 @@ public interface LoveApi {
     /**
      * 取消喜欢某个用户
      *
-     * @param loverId 用户ID
-     * @param beLoverId 被喜欢的用户ID
+     * @param lover 用户ID
+     * @param beLoved 被喜欢的用户ID
      */
-    void deleteLove(Long loverId, Long beLoverId);
+    void deleteLove(Long lover, Long beLoved);
 
     /**
      * 查询我的喜欢消息

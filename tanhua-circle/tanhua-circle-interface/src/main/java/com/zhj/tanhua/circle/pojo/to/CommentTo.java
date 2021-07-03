@@ -2,12 +2,14 @@ package com.zhj.tanhua.circle.pojo.to;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * @author huanjie.zhuang
  * @date 2021/6/23
  */
 @Data
-public class CommentTo {
+public class CommentTo implements Serializable {
 
     private String commentId;
     private String momentId;

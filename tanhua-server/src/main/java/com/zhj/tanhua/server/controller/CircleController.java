@@ -45,7 +45,7 @@ public class CircleController {
     public ResponseResult<MomentBo> publishMoment(@RequestBody MomentVo momentVo) {
         try {
             MomentBo result = circleService.addMoment(momentVo);
-            return null == result.getMomentId() ? ResponseResult.ok(result) : ResponseResult.fail(result);
+            return null == result.getMomentId() ? ResponseResult.fail(result) : ResponseResult.ok(result);
         } catch (BaseException e) {
             return ResponseResult.fail(e);
         }
@@ -274,17 +274,17 @@ public class CircleController {
     /**
      * 取消喜欢某个用户
      *
-     * @param loveUserId 用户ID
-     * @param belovedUserId 评论ID
+     * @param lover 用户ID
+     * @param beLoved 评论ID
      * @return 返回成功响应
      */
     @Auth
     @ApiOperation("取消喜欢某个用户")
     @GetMapping("/user/unlove")
-    public ResponseResult<Void> deleteLove(@RequestParam("loveUserId") Long loveUserId,
-                                           @RequestParam("belovedUserId") Long belovedUserId) {
+    public ResponseResult<Void> deleteLove(@RequestParam("lover") Long lover,
+                                           @RequestParam("beLoved") Long beLoved) {
         try {
-            circleService.deleteLove(loveUserId, belovedUserId);
+            circleService.deleteLove(lover, beLoved);
         } catch (BaseException e) {
             return ResponseResult.fail(e);
         }

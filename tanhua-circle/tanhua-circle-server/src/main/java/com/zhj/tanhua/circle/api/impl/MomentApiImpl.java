@@ -26,7 +26,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -61,14 +60,14 @@ public class MomentApiImpl implements MomentApi {
      * @return 返回动态ID
      */
     @Override
-    @Transactional(rollbackFor = Exception.class)
     public String addMoment(MomentDto momentDto) {
 
         // 写入动态表中
         Moment moment = new Moment();
         BeanUtils.copyProperties(momentDto, moment);
+        moment.setSeeType(momentDto.getSeeType().getVal());
         moment.setCreated(System.currentTimeMillis());
-        mongoTemplate.save(momentDto);
+        mongoTemplate.save(moment);
 
         // 写入相册表表中
         Album album = new Album();
@@ -123,7 +122,7 @@ public class MomentApiImpl implements MomentApi {
             result.setFileName(file.getOriginalFilename());
 
             // 校验媒体文件后缀名
-            if (FileTypeEnum.IMAGE.equals(fileType)) {
+            if (FileTypeEnum.image.equals(fileType)) {
                 if (ImageTypeEnum.UNKNOWN.equals(ImageTypeEnum.getType(StringUtils
                         .substringAfterLast(file.getOriginalFilename(), ".")))) {
                     result.setStatus(false);
@@ -144,7 +143,7 @@ public class MomentApiImpl implements MomentApi {
             }
 
             // 文件路径, {fileType}/{yyyy}/{MM}/{dd}/{currentTimeMillis}.{mediaType}
-            String fileUrl = fileType.getType() +
+            String fileUrl = fileType.toString() +
                     new SimpleDateFormat("/yyyy/MM/dd/").format(new Date()) +
                     System.currentTimeMillis() + "." +
                     StringUtils.substringAfterLast(file.getOriginalFilename(), ".");
@@ -200,11 +199,9 @@ public class MomentApiImpl implements MomentApi {
     @Override
     public PageResult<MomentTo> queryAlbums(Long userId, Integer pageNum, Integer pageSize) {
 
-        Pageable pageable = PageRequest.of(pageNum, pageSize, Sort.by(Sort.Order.desc("created")));
-        Query query = new Query();
-
-        long total = mongoTemplate.count(query, Album.class, Album.TABLE_NAME_PREFIX + userId);
-        List<ObjectId> momentIds = mongoTemplate.find(new Query().with(pageable),
+        long total = mongoTemplate.count(new Query(), Album.class, Album.TABLE_NAME_PREFIX + userId);
+        List<ObjectId> momentIds = mongoTemplate.find(
+                new Query().with(PageRequest.of(pageNum - 1, pageSize, Sort.by(Sort.Order.desc("created")))),
                 Album.class, Album.TABLE_NAME_PREFIX + userId)
                 .stream().map(Album::getMomentId).collect(Collectors.toList());
 
@@ -213,6 +210,9 @@ public class MomentApiImpl implements MomentApi {
         for (Moment moment : moments) {
             momentTos.add(buildMomentTo(moment));
         }
+
+        // 按照创建时间重新排序
+        momentTos.sort((o1, o2) -> o1.getCreated() < o2.getCreated() ? 1 : -1);
 
         return PageResult.<MomentTo>builder().total(total).pageNum((long)pageNum).pageSize((long)pageSize)
                 .hasNext((long) pageNum * pageSize < total).data(momentTos).build();

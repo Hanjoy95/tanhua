@@ -6,6 +6,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.io.Serializable;
+
 /**
  * 点赞表
  *
@@ -14,7 +16,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Data
 @Document(collection = "circle_like")
-public class Like {
+public class Like implements Serializable {
 
     /**
      * 主键ID

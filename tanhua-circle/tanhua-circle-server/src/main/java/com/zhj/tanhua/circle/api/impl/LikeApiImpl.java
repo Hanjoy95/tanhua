@@ -50,7 +50,7 @@ public class LikeApiImpl implements LikeApi {
             throw new ResourceNotFoundException("momentId: " + momentId + ", not found");
         }
 
-        Query query = Query.query(Criteria.where("likerId").is(userId).and("momentId").is(momentId));
+        Query query = Query.query(Criteria.where("liker").is(userId).and("momentId").is(new ObjectId(momentId)));
         // 点赞
         if (isLike) {
             // 已点赞
@@ -97,7 +97,7 @@ public class LikeApiImpl implements LikeApi {
                 QueryTypeEnum.QUERY_MY_MESSAGE.equals(type) ? "beLiked" : "liker").is(userId));
         long total = mongoTemplate.count(query, Like.class);
         List<Like> likes = mongoTemplate.find(
-                query.with(PageRequest.of(pageNum, pageSize, Sort.by(Sort.Order.desc("created")))),
+                query.with(PageRequest.of(pageNum - 1, pageSize, Sort.by(Sort.Order.desc("created")))),
                 Like.class);
 
         return PageResult.<Like>builder().total(total).pageNum((long)pageNum).pageSize((long)pageSize)
